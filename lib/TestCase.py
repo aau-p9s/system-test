@@ -79,4 +79,4 @@ class TestCase:
                 }
             }
         }
-        os.system(f"kubectl patch hpa workload-api-deployment --patch {dumps(data)}")
+        os.system(f"kubectl patch hpa workload-api-deployment --patch '{dumps(data)}'")
