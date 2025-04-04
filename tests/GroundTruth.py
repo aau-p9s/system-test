@@ -3,7 +3,7 @@ import os
 from lib.TestCase import TestCase
 
 class GroundTruth(TestCase):
-    def setup_HPA(self):
+    def setup_kubernetes(self):
         os.system("kubectl autoscale deployment workload-api-deployment --cpu-percent=50 --min=2 --max=10")
         data = {
             "spec":{
