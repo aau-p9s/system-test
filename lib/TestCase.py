@@ -67,13 +67,8 @@ class TestCase:
                     "scaleUp": {
                         "policies": [
                             {
-                                "type": "Pods",
-                                "value": 2,
-                                "periodSeconds": 60
-                            },
-                            {
                                 "type": "Percent",
-                                "value": 50,
+                                "value": int(self.scale_up*100),
                                 "periodSeconds": 60
                             }
                         ],
@@ -82,13 +77,8 @@ class TestCase:
                     "scaleDown": {
                         "policies": [
                             {
-                                "type": "Pods",
-                                "value": 1,
-                                "periodSeconds": 60
-                            },
-                            {
                                 "type": "Percent",
-                                "value": 10,
+                                "value": int(self.scale_up*100),
                                 "periodSeconds": 60
                             }
                         ],
@@ -97,4 +87,5 @@ class TestCase:
                 }
             },
         }
+        print(dumps(data))
         os.system(f"kubectl patch hpa workload-api-deployment --patch '{dumps(data)}'")
