@@ -5,7 +5,8 @@ from lib.TestCase import TestCase
 
 class GroundTruth(TestCase):
     def setup_kubernetes(self):
-        os.system("kubectl autoscale deployment workload-api-deployment --cpu-percent=50 --min=2 --max=10")
+        os.system("kubectl autoscale deployment workload-api-deployment --cpu-percent=50 --min=1 --max=10")
+        print("deployed autoscaler")
         data = {
             "spec":{
                 "maxReplicas":self.max_replicas,
