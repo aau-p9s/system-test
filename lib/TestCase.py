@@ -63,21 +63,38 @@ class TestCase:
             "spec":{
                 "maxReplicas":self.max_replicas,
                 "minReplicas":self.min_replicas,
-
                 "behavior": {
-                    "scaleDown": {
-                        "policies": [
-                            { "type": "Percent" },
-                            { "value": int(self.scale_down*100) }
-                        ]
-                    },
                     "scaleUp": {
                         "policies": [
-                            { "type": "Percent" },
-                            { "value": int(self.scale_up*100) }
-                        ]
+                            {
+                                "type": "Pods",
+                                "value": 2,
+                                "periodSeconds": 60
+                            },
+                            {
+                                "type": "Percent",
+                                "value": 50,
+                                "periodSeconds": 60
+                            }
+                        ],
+                        "stabilizationWindowSeconds": 300
+                    },
+                    "scaleDown": {
+                        "policies": [
+                            {
+                                "type": "Pods",
+                                "value": 1,
+                                "periodSeconds": 60
+                            },
+                            {
+                                "type": "Percent",
+                                "value": 10,
+                                "periodSeconds": 60
+                            }
+                        ],
+                        "stabilizationWindowSeconds": 300
                     }
                 }
-            }
+            },
         }
         os.system(f"kubectl patch hpa workload-api-deployment --patch '{dumps(data)}'")
