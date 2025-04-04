@@ -15,7 +15,7 @@ class TestCase:
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, tests:int = 3, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10):
+    def __init__(self, name, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, tests:int = 3, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10):
         self.size = size
         self.period = period
         self.delay = delay
@@ -25,6 +25,7 @@ class TestCase:
         self.min_replicas = min_replicas
         self.max_replicas = max_replicas
         self.response_data:list[dict[float, dict[str, float | int]]] = []
+        self.name = name
 
         print(f"Initialized {self}\n")
 
@@ -45,15 +46,13 @@ class TestCase:
             results[start_send] = {"response_time": response_time, "pod_count": pod_count}
             wait_time = self.delay - response_time
             print(f"{wait_time=}")
-            if wait_time > 0:
-                time.sleep(wait_time)
         self.response_data.append(results)
 
     def save(self):
         os.system("mkdir -p results")
         for index, result in enumerate(self.response_data):
             timestamp = int(time.time())
-            with open(f"results/{type(self).__name__}-{timestamp}-{index}.csv", "w") as file:
+            with open(f"results/{self.name}-{timestamp}-{index}.csv", "w") as file:
                 writer = csv.writer(file)
                 writer.writerow(["timestamp", "response"])
                 for timestamp1, data in result.items():
