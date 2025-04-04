@@ -1,7 +1,8 @@
+from subprocess import check_output
 import time
 import os
 import csv
-from json import dumps
+from json import dumps, loads
 
 class TestCase:
     target:str
@@ -23,7 +24,7 @@ class TestCase:
         self.scale_down = scale_down
         self.min_replicas = min_replicas
         self.max_replicas = max_replicas
-        self.response_data:list[dict[float, float]] = []
+        self.response_data:list[dict[float, dict[str, float | int]]] = []
 
         print(f"Initialized {self}\n")
 
@@ -31,7 +32,7 @@ class TestCase:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.tests=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
-        results:dict[float, float] = {}
+        results:dict[float, dict[str, float | int]] = {}
         start_time = time.time()
         end_time = start_time + self.period
         while time.time() < end_time:
@@ -40,7 +41,8 @@ class TestCase:
             os.system(cmd)
             end_send = time.time()
             response_time = end_send - start_send
-            results[start_send] = response_time
+            pod_count = loads(check_output(["kubectl", "get", "deploy", "workload-api-deployment", "-o", "json"]).decode())["spec"]["replicas"]
+            results[start_send] = {"response_time": response_time, "pod_count": pod_count}
             wait_time = self.delay - response_time
             print(f"{wait_time=}")
             if wait_time > 0:
@@ -54,7 +56,8 @@ class TestCase:
             with open(f"results/{type(self).__name__}-{timestamp}-{index}.csv", "w") as file:
                 writer = csv.writer(file)
                 writer.writerow(["timestamp", "response"])
-                writer.writerows(result.items())
+                for timestamp1, data in result.items():
+                    writer.writerow([timestamp1, data["response_time"], data["pod_count"]])
                 
     def kubernetes_setup(self):
         print("Setup unsupported")

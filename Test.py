@@ -53,6 +53,6 @@ for test in tests:
     print(f"{test}\nFinshed, results: ")
     for result in test.response_data:
         for timestamp, response in result.items():
-            print(f"{timestamp},{response}")
+            print(f"{timestamp},{response['response_time']}")
 
     test.save()
