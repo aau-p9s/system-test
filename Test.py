@@ -14,7 +14,6 @@ target = vars(parser.parse_args())["target"]
 TestCase.target = target
 
 tests:list[TestCase] = [
-        Baseline(size={"x":8000, "y":8000}, delay=10, period=60), # test tests test
     Baseline(),
     GroundTruth(),
     StudyResult(),
@@ -24,9 +23,9 @@ tests:list[TestCase] = [
     Baseline(size={"x":2000, "y":2000}),
     GroundTruth(size={"x":2000, "y":2000}),
     StudyResult(size={"x":2000, "y":2000}),
-    Baseline(size={"x":8000, "y":8000}),
-    GroundTruth(size={"x":8000, "y":8000}),
-    StudyResult(size={"x":8000, "y":8000}),
+    Baseline(size={"x":4000, "y":4000}),
+    GroundTruth(size={"x":4000, "y":4000}),
+    StudyResult(size={"x":4000, "y":4000}),
     GroundTruth(scale_up=0.4, scale_down=.15),
     StudyResult(scale_up=0.4, scale_down=.15),
     GroundTruth(scale_up=0.3, scale_down=.1),
