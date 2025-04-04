@@ -4,6 +4,8 @@ import os
 import csv
 from json import dumps
 
+scale_target = "127.0.0.1"
+
 class TestCase:
     target:str
     size:dict[str, int]
