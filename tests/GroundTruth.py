@@ -1,5 +1,6 @@
 from json import dumps
 import os
+from time import sleep
 from lib.TestCase import TestCase
 
 class GroundTruth(TestCase):
@@ -34,4 +35,4 @@ class GroundTruth(TestCase):
             },
         }
         os.system(f"kubectl patch hpa workload-api-deployment --patch '{dumps(data)}'")
-
+        sleep(120)
