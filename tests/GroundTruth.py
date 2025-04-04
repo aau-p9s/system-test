@@ -4,7 +4,7 @@ from time import sleep
 from lib.TestCase import TestCase
 
 class GroundTruth(TestCase):
-    def setup_kubernetes(self):
+    def kubernetes_setup(self):
         os.system("kubectl autoscale deployment workload-api-deployment --cpu-percent=50 --min=1 --max=10")
         print("deployed autoscaler")
         data = {
