@@ -15,19 +15,19 @@ TestCase.target = target
 
 tests:list[TestCase] = [
     Baseline(size={"x":500, "y":500}, delay=10, period=60), # test tests test
-    GroundTruth(size={"x":3000, "y":3000}, delay=10, period=60), # test tests test
+    GroundTruth(size={"x":2000, "y":2000}, delay=10, period=60), # test tests test
     Baseline(),
     GroundTruth(),
     StudyResult(),
     Baseline(size={"x":100, "y":100}),
     GroundTruth(size={"x":100, "y":100}),
     StudyResult(size={"x":100, "y":100}),
+    Baseline(size={"x":1000, "y":1000}),
+    GroundTruth(size={"x":1000, "y":1000}),
+    StudyResult(size={"x":1000, "y":1000}),
     Baseline(size={"x":2000, "y":2000}),
     GroundTruth(size={"x":2000, "y":2000}),
     StudyResult(size={"x":2000, "y":2000}),
-    Baseline(size={"x":4000, "y":4000}),
-    GroundTruth(size={"x":4000, "y":4000}),
-    StudyResult(size={"x":4000, "y":4000}),
     GroundTruth(scale_up=0.4, scale_down=.15),
     StudyResult(scale_up=0.4, scale_down=.15),
     GroundTruth(scale_up=0.3, scale_down=.1),

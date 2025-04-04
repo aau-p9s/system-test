@@ -14,7 +14,7 @@ class TestCase:
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, size:dict[str, int] = {"x":4000, "y":4000}, period:int = 86400, delay:int = 25, tests:int = 3, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10):
+    def __init__(self, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, tests:int = 3, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10):
         self.size = size
         self.period = period
         self.delay = delay
