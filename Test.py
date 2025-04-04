@@ -45,6 +45,7 @@ tests:list[TestCase] = [
 ]
 
 for test in tests:
+    test.kubernetes_setup()
     for runid in range(test.tests):
         print(f"starting run #{runid}")
         print(f"test duration: {test.period} seconds")
