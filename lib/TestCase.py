@@ -63,19 +63,20 @@ class TestCase:
             "spec":{
                 "maxReplicas":self.max_replicas,
                 "minReplicas":self.min_replicas,
-            },
-            "behavior": {
-                "scaleDown": {
-                    "policies": [
-                        { "type": "Percent" },
-                        { "value": self.scale_down }
-                    ]
-                },
-                "scaleUp": {
-                    "policies": [
-                        { "type": "Percent" },
-                        { "value": self.scale_up }
-                    ]
+
+                "behavior": {
+                    "scaleDown": {
+                        "policies": [
+                            { "type": "Percent" },
+                            { "value": self.scale_down }
+                        ]
+                    },
+                    "scaleUp": {
+                        "policies": [
+                            { "type": "Percent" },
+                            { "value": self.scale_up }
+                        ]
+                    }
                 }
             }
         }
