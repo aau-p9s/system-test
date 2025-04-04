@@ -31,7 +31,7 @@ class TestCase:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.tests=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
-        self.setup_HPA()
+        self.kubernetes_setup()
         results:dict[float, float] = {}
         start_time = time.time()
         end_time = start_time + self.period
@@ -57,5 +57,5 @@ class TestCase:
                 writer.writerow(["timestamp", "response"])
                 writer.writerows(result.items())
                 
-    def setup_HPA(self):
+    def kubernetes_setup(self):
         print("Setup unsupported")
