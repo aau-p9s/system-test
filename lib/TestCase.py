@@ -37,7 +37,8 @@ class TestCase:
         end_time = start_time + self.period
         while time.time() < end_time:
             start_send = time.time()
-            os.system(f'curl {self.target} -d "{dumps(self.size)}"')
+            cmd = f"curl {self.target} -d '{dumps(self.size)}'"
+            os.system(cmd)
             end_send = time.time()
             response_time = end_send - start_send
             results[start_send] = response_time
