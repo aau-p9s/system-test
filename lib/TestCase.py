@@ -68,13 +68,13 @@ class TestCase:
                     "scaleDown": {
                         "policies": [
                             { "type": "Percent" },
-                            { "value": self.scale_down }
+                            { "value": int(self.scale_down*100) }
                         ]
                     },
                     "scaleUp": {
                         "policies": [
                             { "type": "Percent" },
-                            { "value": self.scale_up }
+                            { "value": int(self.scale_up*100) }
                         ]
                     }
                 }
