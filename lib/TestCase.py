@@ -1,10 +1,7 @@
-import requests
 import time
 import os
 import csv
 from json import dumps
-
-scale_target = "127.0.0.1"
 
 class TestCase:
     target:str
@@ -39,9 +36,8 @@ class TestCase:
         start_time = time.time()
         end_time = start_time + self.period
         while time.time() < end_time:
-            session = requests.session()
             start_send = time.time()
-            session.post(self.target, json=self.size)
+            os.system(f'curl {self.target} -d "{dumps(self.size)}"')
             end_send = time.time()
             response_time = end_send - start_send
             results[start_send] = response_time

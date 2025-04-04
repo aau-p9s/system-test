@@ -1,4 +1,4 @@
-from lib.TestCase import TestCase, scale_target
+from lib.TestCase import TestCase
 from tests.Baseline import Baseline
 from tests.GroundTruth import GroundTruth
 from tests.StudyResult import StudyResult
@@ -11,7 +11,7 @@ parser.add_argument("target")
 
 target = vars(parser.parse_args())["target"]
 
-scale_target = target
+TestCase.target = target
 
 tests:list[TestCase] = [
         Baseline(size={"x":8000, "y":8000}, delay=10, period=60), # test tests test
