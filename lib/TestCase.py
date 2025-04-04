@@ -59,33 +59,4 @@ class TestCase:
                 writer.writerows(result.items())
                 
     def setup_HPA(self):
-        data = {
-            "spec":{
-                "maxReplicas":self.max_replicas,
-                "minReplicas":self.min_replicas,
-                "behavior": {
-                    "scaleUp": {
-                        "policies": [
-                            {
-                                "type": "Percent",
-                                "value": int(self.scale_up*100),
-                                "periodSeconds": 60
-                            }
-                        ],
-                        "stabilizationWindowSeconds": 300
-                    },
-                    "scaleDown": {
-                        "policies": [
-                            {
-                                "type": "Percent",
-                                "value": int(self.scale_up*100),
-                                "periodSeconds": 60
-                            }
-                        ],
-                        "stabilizationWindowSeconds": 300
-                    }
-                }
-            },
-        }
-        print(dumps(data))
-        os.system(f"kubectl patch hpa workload-api-deployment --patch '{dumps(data)}'")
+        print("Setup unsupported")

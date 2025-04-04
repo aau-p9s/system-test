@@ -1,4 +1,5 @@
 from lib.TestCase import TestCase
 
 class StudyResult(TestCase):
-    pass
+    def setup_HPA(self):
+        print("setup not configured, skipping")
