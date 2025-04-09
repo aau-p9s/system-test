@@ -16,10 +16,6 @@ TestCase.target = target
 tests:list[TestCase] = [
     GroundTruth("Test-GT", size={"x":2000, "y":2000}, delay=10, period=60), # test tests test
     Baseline("Test-BL", size={"x":1000, "y":1000}, delay=10, period=60), # test tests test
-    Baseline("Baseline"),
-    GroundTruth("GroundTruth"),
-    StudyResult("Study"),
-    Baseline("Baseline-10x10", size={"x":10, "y":10}),
     GroundTruth("GroundTruth-10x10", size={"x":10, "y":10}),
     StudyResult("Study-10x10", size={"x":10, "y":10}),
     Baseline("Baseline-100x100", size={"x":100, "y":100}),
