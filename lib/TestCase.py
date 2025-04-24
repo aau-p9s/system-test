@@ -3,6 +3,7 @@ import time
 import os
 import csv
 from json import dumps, loads
+from datetime import datetime
 
 class TestCase:
     target:str
@@ -52,7 +53,7 @@ class TestCase:
         os.system("mkdir -p results")
         for index, result in enumerate(self.response_data):
             timestamp = int(time.time())
-            with open(f"results/{self.name}-{timestamp}-{index}.csv", "w") as file:
+            with open(f"results/{self.name}-{datetime.fromtimestamp(timestamp)}-{index}.csv", "w") as file:
                 writer = csv.writer(file)
                 writer.writerow(["timestamp", "response"])
                 for timestamp1, data in result.items():

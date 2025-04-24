@@ -45,7 +45,7 @@ workload_api_deployment = lambda memory_req, cpu_req, memory_lim, cpu_lim: {
         }
     }
 }
-hpa_patch = lambda max, min, scale_up, scale_down: {
+hpa_patch = lambda min, max, scale_down, scale_up: {
     "spec":{
         "maxReplicas":max,
         "minReplicas":min,
