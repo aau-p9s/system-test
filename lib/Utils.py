@@ -1,16 +1,17 @@
 from json import dumps, loads
-from os import chdir, curdir, path, system
+from os import chdir, getcwd, path, system
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
 from time import sleep
 from typing import Any
 from lib.Arguments import verbose
 
+output = None if verbose else DEVNULL
 
 def curl(url:str, params:list[str] = [], json=True) -> Any:
     raw_response = check_output([
         "curl",
         url,
-    ] + params, stderr=DEVNULL)
+    ] + params, stderr=output)
     if verbose:
         print(f"curl raw response: {raw_response}")
     if json:
@@ -30,13 +31,12 @@ def clone_repository(url:str, target_directory:str, branch:str = "main"):
             "-b",
             branch,
             target_directory
-        ], stdout=DEVNULL, stderr=DEVNULL)
+        ], stdout=output, stderr=output)
     except CalledProcessError as e:
         print(f"Failed to clone repo [{e.returncode}]")
         exit(1)
 
 def copy_directory(source_directory:str, target_directory:str):
-    output = None if verbose else DEVNULL
     try:
         if path.exists(target_directory):
             check_call([
@@ -61,7 +61,7 @@ def kubectl(command, args, json=False, failable=False) -> Any:
         raw_response = check_output([
             "kubectl",
             command,
-        ] + args + (["-o", "json"] if json else []), stderr=DEVNULL)
+        ] + args + (["-o", "json"] if json else []), stderr=output)
     except CalledProcessError:
         if verbose or not failable:
             print(f"Kubectl command failed: [{command=}, {args=}], continue? {failable}")
@@ -73,7 +73,6 @@ def kubectl(command, args, json=False, failable=False) -> Any:
         return loads(raw_response)
 
 def kubectl_apply(data:Any):
-    output = None if verbose else DEVNULL
     try:
         data_pipe = Popen([
             "echo", 
@@ -90,8 +89,7 @@ def kubectl_apply(data:Any):
         exit(1)
 
 def nix(command, flake, working_directory=""):
-    output = None if verbose else DEVNULL
-    original_directory = curdir
+    original_directory = getcwd()
     if working_directory:
         chdir(working_directory)
     try:
