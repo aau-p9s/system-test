@@ -17,7 +17,10 @@ def curl(url:str, params:list[str] = [], json=True) -> Any:
         return loads(raw_response)
 
 def clone_repository(url:str, target_directory:str, branch:str = "main"):
-    os.rmdir(target_directory)
+    if target_directory in ["/", ".", ""]:
+        print("lol")
+        exit(1)
+    os.system(f"rm -rf {target_directory}")
     print(f"Cloning Repository: {url}[{branch}] -> {target_directory}")
     if(check_call([
         "git",
