@@ -11,8 +11,7 @@ def curl(url:str, params:list[str] = []) -> Any:
     raw_response = check_output([
         "curl",
         url,
-        " ".join(params)
-    ])
+    ] + params)
     print(f"curl raw response: {raw_response}")
     return loads(raw_response)
 
