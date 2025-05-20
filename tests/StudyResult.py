@@ -72,11 +72,11 @@ class StudyResult(TestCase):
         
         curl(f"localhost:{autoscaler_exposed_port}/services",  [
             "--json",
-            f"'{dumps(service)}'"
+            f"{dumps(service)}"
         ], json=False)
         curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
             "--json",
-            f"'{dumps(settings)}'"
+            f"{dumps(settings)}"
         ], json=False)
         print("Rediscovering services")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
