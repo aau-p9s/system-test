@@ -29,6 +29,6 @@ for file in files:
         plt.plot(fitted_timestamps, pods, label="pod count")
 
 plt.legend()
-plt.ylim(0, 1)
+plt.ylim(0, 3)
 
 plt.show()
