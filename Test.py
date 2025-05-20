@@ -9,13 +9,15 @@ import sys
 parser = argparse.ArgumentParser(sys.argv[0])
 parser.add_argument("target")
 parser.add_argument("target_deployment")
+parser.add_argument("--raw", type=bool, default=False)
 
 args = vars(parser.parse_args())
 target = args["target"]
 target_deployment = args["target_deployment"]
 
-TestCase.target = target
-TestCase.target_deployment = target_deployment
+TestCase.target = args["target"]
+TestCase.target_deployment = args["target_deployment"]
+TestCase.print_raw = args["raw"]
 
 tests:list[TestCase] = [
     Baseline("Baseline-10x10", size={"x":10, "y":10}),

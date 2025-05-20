@@ -1,5 +1,5 @@
 from os import system
-from lib.TestCase import TestCase, clone_repository, curl, kubectl, logged_delay
+from lib.TestCase import TestCase
 from json import dumps
 from lib.data import autoscaler_deployment
 
@@ -21,16 +21,16 @@ class StudyResult(TestCase):
                 system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
 
         # wait for db to be ready
-        kubectl("wait", [
+        self.kubectl("wait", [
             "--for=condition=Available",
             "deployments/postgres"
         ])
         # a little extra just to be sure
-        logged_delay(10)
+        self.logged_delay(10)
 
         # reinit and deploy db
-        clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
-        clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
+        self.clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
+        self.clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
         system("""
             cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels /tmp/forecaster/Assets/models
             cd /tmp/forecaster
@@ -43,38 +43,38 @@ class StudyResult(TestCase):
         for kubeconfig in late_deployments:
             system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
         # Wait for deployments ready
-        kubectl("wait", [
+        self.kubectl("wait", [
             "--for=condition=Available",
             "deployments/autoscaler"
         ])
-        kubectl("wait", [
+        self.kubectl("wait", [
             "--for=condition=Available",
             "deployments/forecaster"
         ])
         # a little extra just to be sure
-        logged_delay(20)
+        self.logged_delay(20)
 
-        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+        self.curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
         # let shit run
-        logged_delay(5)
+        self.logged_delay(5)
 
-        services = curl(f"localhost:{autoscaler_exposed_port}/services")
+        services = self.curl(f"localhost:{autoscaler_exposed_port}/services")
         service = [service for service in services if service["name"] == self.target_deployment][0]
         service_id = service["id"]
         service["autoscalingEnabled"] = True
 
-        settings = curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
+        settings = self.curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
         settings["scaleUp"] = self.scale_up
         settings["scaleDown"] = self.scale_down
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
         
-        curl(f"localhost:{autoscaler_exposed_port}/services",  [
+        self.curl(f"localhost:{autoscaler_exposed_port}/services",  [
             "--json",
             f"'{dumps(service)}'"
         ], json=False)
-        curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
+        self.curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
             "--json",
             f"'{dumps(settings)}'"
         ], json=False)
-        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+        self.curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)

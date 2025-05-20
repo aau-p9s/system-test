@@ -1,11 +1,11 @@
 from json import dumps
 import os
-from lib.TestCase import TestCase, kubectl, logged_delay
+from lib.TestCase import TestCase
 from lib.data import hpa_patch
 
 class GroundTruth(TestCase):
     def kubernetes_setup(self):
-        kubectl("autoscale", [
+        self.kubectl("autoscale", [
             "deployment",
             self.target_deployment,
             "--cpu-percent=50",
@@ -15,11 +15,11 @@ class GroundTruth(TestCase):
         print("deployed autoscaler")
         # Patch HPA
         patch_data = hpa_patch(self.min_replicas, self.max_replicas, self.scale_down, self.scale_up)
-        kubectl("patch", [
+        self.kubectl("patch", [
             "hpa",
             self.target_deployment,
             "--patch",
             f"'{dumps(patch_data)}'"
         ])
         os.system(f"kubectl patch hpa {self.target_deployment} --patch '{dumps(patch_data)}'")
-        logged_delay(120)
+        self.logged_delay(120)
