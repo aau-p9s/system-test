@@ -51,12 +51,9 @@ class StudyResult(TestCase):
         # let shit run
         sleep(5)
         services = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services"]).decode())
-        service_id = ""
-        for i, service in enumerate(services):
-            if service["name"] == self.target_deployment:
-                services[i]["autoscalingEnabled"] = True
-                service_id = service["id"]
-                break
+        service = [service for service in services if service["name"] == self.target_deployment][0]
+        service_id = service["id"]
+        service["autoscalingEnabled"] = True
 
         settings = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services/{service_id}"]))
         settings["scaleUp"] = self.scale_up
@@ -65,7 +62,7 @@ class StudyResult(TestCase):
         settings["maxReplicas"] = self.max_replicas
 
         system(f"""
-            curl localhost:{autoscaler_exposed_port}/services --json "{dumps(services)}"
+            curl localhost:{autoscaler_exposed_port}/services --json "{dumps(service)}"
             curl localhost:{autoscaler_exposed_port}/services/{service_id}/settings --json "{dumps(settings)}"
             curl localhost:{autoscaler_exposed_port}/services/start
         """)
