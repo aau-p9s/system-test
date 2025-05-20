@@ -7,6 +7,7 @@ from datetime import datetime
 
 class TestCase:
     target:str
+    target_deployment:str
     size:dict[str, int]
     period:int
     delay:int
@@ -43,7 +44,7 @@ class TestCase:
             os.system(cmd)
             end_send = time.time()
             response_time = end_send - start_send
-            pod_count = loads(check_output(["kubectl", "get", "deploy", "workload-api-deployment", "-o", "json"]).decode())["spec"]["replicas"]
+            pod_count = loads(check_output(["kubectl", "get", "deploy", self.target_deployment, "-o", "json"]).decode())["spec"]["replicas"]
             results[start_send] = {"response_time": response_time, "pod_count": pod_count}
             wait_time = self.delay - response_time
             print(f"{wait_time=}")
