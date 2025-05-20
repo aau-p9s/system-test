@@ -54,6 +54,7 @@ class StudyResult(TestCase):
         # a little extra just to be sure
         self.logged_delay(20)
 
+        print("Discovering services")
         self.curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
         # let shit run
         self.logged_delay(5)
@@ -77,4 +78,5 @@ class StudyResult(TestCase):
             "--json",
             f"'{dumps(settings)}'"
         ], json=False)
+        print("Rediscovering services")
         self.curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
