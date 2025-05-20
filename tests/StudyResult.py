@@ -1,8 +1,6 @@
 from os import system
-from subprocess import check_output
-from time import sleep
-from lib.TestCase import TestCase, curl
-from json import dumps, loads
+from lib.TestCase import TestCase, curl, logged_delay
+from json import dumps
 from lib.data import autoscaler_deployment
 
 autoscaler_port = 8080
@@ -10,7 +8,6 @@ forecaster_port = 8081
 postgres_port = 5432
 
 autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
-
 
 
 class StudyResult(TestCase):
@@ -26,7 +23,7 @@ class StudyResult(TestCase):
         # wait for db to be ready
         system("kubectl wait --for=condition=Available deployments/postgres")
         # a little extra just to be sure
-        sleep(10)
+        logged_delay(10)
 
         # reinit and deploy db
         system("""
@@ -49,11 +46,11 @@ class StudyResult(TestCase):
             kubectl wait --for=condition=Available deployments/forecaster
         """)
         # a little extra just to be sure
-        sleep(20)
+        logged_delay(20)
 
-        curl(f"localhost:{autoscaler_exposed_port}/services/start")
+        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
         # let shit run
-        sleep(5)
+        logged_delay(5)
         services = curl(f"localhost:{autoscaler_exposed_port}/services")
         service = [service for service in services if service["name"] == self.target_deployment][0]
         service_id = service["id"]
@@ -72,5 +69,5 @@ class StudyResult(TestCase):
         curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
             "--json",
             f"'{dumps(settings)}'"
-        ])
-        curl(f"localhost:{autoscaler_exposed_port}/services/start")
+        ], json=False)
+        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)

@@ -1,7 +1,6 @@
 from json import dumps
 import os
-from time import sleep
-from lib.TestCase import TestCase
+from lib.TestCase import TestCase, logged_delay
 from lib.data import hpa_patch
 
 class GroundTruth(TestCase):
@@ -11,4 +10,4 @@ class GroundTruth(TestCase):
         # Patch HPA
         patch_data = hpa_patch(self.min_replicas, self.max_replicas, self.scale_down, self.scale_up)
         os.system(f"kubectl patch hpa {self.target_deployment} --patch '{dumps(patch_data)}'")
-        sleep(120)
+        logged_delay(120)

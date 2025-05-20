@@ -7,13 +7,18 @@ from datetime import datetime
 from typing import Any
 from lib.data import autoscaler_deployment
 
-def curl(url:str, params:list[str] = []) -> Any:
+def curl(url:str, params:list[str] = [], json=True) -> Any:
     raw_response = check_output([
         "curl",
         url,
     ] + params)
     print(f"curl raw response: {raw_response}")
-    return loads(raw_response)
+    if json:
+        return loads(raw_response)
+
+def logged_delay(delay):
+    print(f"Current thread is waiting for {delay} seconds")
+    time.sleep(delay)
 
 
 class TestCase:
