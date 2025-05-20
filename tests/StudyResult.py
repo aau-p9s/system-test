@@ -46,6 +46,8 @@ class StudyResult(TestCase):
         """)
 
         system(f"curl localhost:{autoscaler_exposed_port}/services/start")
+        # let shit run
+        sleep(5)
         services = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services"]).decode())
         service_id = ""
         for i, service in enumerate(services):
