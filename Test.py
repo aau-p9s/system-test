@@ -27,9 +27,6 @@ for test in tests:
         print(f"starting run #{runid}")
         print(f"test duration: {test.period} seconds")
         test.run()
-    print(f"{test}\nFinshed, results: ")
-    for result in test.response_data:
-        for timestamp, response in result.items():
-            print(f"{timestamp},{response['response_time']}")
+    print(f"{test}\nFinshed, saving results...")
 
     test.save()
