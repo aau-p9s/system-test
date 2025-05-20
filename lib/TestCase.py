@@ -1,4 +1,4 @@
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 import time
 import os
 import csv
@@ -55,15 +55,20 @@ class TestCase:
         start_time = time.time()
         end_time = start_time + self.period
         while time.time() < end_time:
+            got_error = False
             start_send = time.time()
-            curl(self.target, [
-                "-d",
-                f"'{dumps(self.size)}'"
-            ])
+            try:
+                curl(self.target, [
+                    "-d",
+                    f"'{dumps(self.size)}'"
+                ], json=False)
+            except CalledProcessError as e:
+                print(f"Curl got error: {e.returncode}")
+                got_error = True
             end_send = time.time()
             response_time = end_send - start_send
             pod_count = loads(check_output(["kubectl", "get", "deploy", self.target_deployment, "-o", "json"]).decode())["spec"]["replicas"]
-            results[start_send] = {"response_time": response_time, "pod_count": pod_count}
+            results[start_send] = {"response_time": response_time, "pod_count": pod_count, "error":got_error}
             wait_time = self.delay - response_time
             print(f"{wait_time=}")
         self.response_data.append(results)
