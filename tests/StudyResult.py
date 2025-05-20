@@ -19,6 +19,10 @@ class StudyResult(TestCase):
             else:
                 system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
 
+        # wait for db to be ready
+        system("kubectl wait --for=condition=Available deployments/postgres")
+
+        # reinit and deploy db
         system("""
             rm -rf /tmp/autoscaler /tmp/forecaster
             git clone https://github.com/aau-p9s/autoscaler /tmp/autoscaler
