@@ -12,12 +12,18 @@ class StudyResult(TestCase):
         for kubeconfig in autoscaler_kubeconfig:
             system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
         print("Waiting for {wait_time} seconds")
-        sleep(wait_time)
-        system("rm -rf /tmp/autoscaler /tmp/forecaster")
-        system("git clone https://github.com/aau-p9s/autoscaler /tmp/autoscaler")
-        system('git clone -b "feat/model_deployment_scripts" https://github.com/aau-p9s/forecaster /tmp/forecaster')
-        system("mkdir -p /tmp/forecaster/Assets/models")
-        system("cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels/* /tmp/forecaster/Assets/models/")
-        system("dotnet run --project /tmp/autoscaler/Autoscaler.DbUp")
-        system("nix run path:/tmp/forecaster#reinit")
-        system("nix run path:/tmp/forecaster#deploy")
+        # Wait for deployments ready
+        system("""
+            kubectl wait --for=condition=Available deployments/autoscaler
+            kubectl wait --for=condition=Available deployments/forecaster
+        """)
+        system("""
+            rm -rf /tmp/autoscaler /tmp/forecaster
+            git clone https://github.com/aau-p9s/autoscaler /tmp/autoscaler
+            git clone -b "feat/model_deployment_scripts" https://github.com/aau-p9s/forecaster /tmp/forecaster
+            mkdir -p /tmp/forecaster/Assets/models
+            cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels/* /tmp/forecaster/Assets/models/
+            nix run path:/tmp/forecaster#reinit
+            dotnet run --project /tmp/autoscaler/Autoscaler.DbUp
+            nix run path:/tmp/forecaster#deploy
+        """)
