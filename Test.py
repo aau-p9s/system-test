@@ -2,6 +2,9 @@ from lib.TestCase import TestCase
 from tests.Baseline import Baseline
 from tests.GroundTruth import GroundTruth
 from tests.StudyResult import StudyResult
+import lib.Arguments as args # force entire module to load
+
+print(f"argparse name: {args.parser.prog}")
 
 tests:list[TestCase] = [
     Baseline("Baseline-10x10", size={"x":10, "y":10}),
