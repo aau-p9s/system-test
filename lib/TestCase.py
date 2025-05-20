@@ -53,7 +53,7 @@ class TestCase:
         self.response_data:list[dict[float, dict[str, float | int]]] = []
         self.name = name
 
-        print(f"Initialized {self}\n")
+        print(f"Initialized {self}")
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.tests=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
