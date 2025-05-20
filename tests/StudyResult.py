@@ -65,7 +65,7 @@ class StudyResult(TestCase):
         settings["maxReplicas"] = self.max_replicas
 
         system(f"""
-            curl localhost:{autoscaler_exposed_port}/services --json '{dumps(services)}'
-            curl localhost:{autoscaler_exposed_port}/services/{service_id}/settings --json '{dumps(settings)}'
+            curl localhost:{autoscaler_exposed_port}/services --json "{dumps(services)}"
+            curl localhost:{autoscaler_exposed_port}/services/{service_id}/settings --json "{dumps(settings)}"
             curl localhost:{autoscaler_exposed_port}/services/start
         """)
