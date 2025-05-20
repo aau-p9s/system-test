@@ -5,8 +5,6 @@ from lib.TestCase import TestCase
 from json import dumps, loads
 from lib.data import autoscaler_deployment
 
-wait_time = 10
-
 autoscaler_port = 8080
 forecaster_port = 8081
 postgres_port = 5432
@@ -16,7 +14,6 @@ class StudyResult(TestCase):
         autoscaler_kubeconfig = autoscaler_deployment("autoscaler", "root", "password", postgres_port, autoscaler_port, forecaster_port)
         for kubeconfig in autoscaler_kubeconfig:
             system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
-        print("Waiting for {wait_time} seconds")
         # Wait for deployments ready
         system("""
             kubectl wait --for=condition=Available deployments/autoscaler
@@ -29,7 +26,6 @@ class StudyResult(TestCase):
             mkdir -p /tmp/forecaster/Assets/models
             cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels/* /tmp/forecaster/Assets/models/
             nix run path:/tmp/forecaster#reinit
-            dotnet run --project /tmp/autoscaler/Autoscaler.DbUp
             nix run path:/tmp/forecaster#deploy
         """)
         system("curl localhost:{autoscaler_port}/services/start")
