@@ -15,6 +15,7 @@ class StudyResult(TestCase):
     def kubernetes_setup(self):
         autoscaler_kubeconfig = autoscaler_deployment("autoscaler", "root", "password", postgres_port, autoscaler_port, forecaster_port)
         late_deployments = []
+        print("Applying initial kubeconfigs")
         for kubeconfig in autoscaler_kubeconfig:
             if kubeconfig["metadata"]["name"] in ["autoscaler", "forecaster"] and kubeconfig["kind"] == "Deployment":
                 late_deployments.append(kubeconfig)
@@ -33,9 +34,11 @@ class StudyResult(TestCase):
         clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
         clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
         copy_directory("/tmp/autoscaler/Autoscaler.Api/BaselineModels/", "/tmp/forecaster/Assets/models")
+        print("running nix init scripts")
         nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
         nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
 
+        print("Applying late kubeconfigs")
         # Do the late deployments
         for kubeconfig in late_deployments:
             kubectl_apply(kubeconfig)
