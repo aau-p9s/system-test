@@ -9,6 +9,8 @@ autoscaler_port = 8080
 forecaster_port = 8081
 postgres_port = 5432
 
+autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
+
 class StudyResult(TestCase):
     def kubernetes_setup(self):
         autoscaler_kubeconfig = autoscaler_deployment("autoscaler", "root", "password", postgres_port, autoscaler_port, forecaster_port)
@@ -44,7 +46,7 @@ class StudyResult(TestCase):
         """)
 
         system(f"curl localhost:{autoscaler_port}/services/start")
-        services = loads(check_output(["curl", f"localhost:{autoscaler_port}/services"]).decode())
+        services = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services"]).decode())
         service_id = ""
         for i, service in enumerate(services):
             if service["name"] == self.target_deployment:
@@ -52,14 +54,14 @@ class StudyResult(TestCase):
                 service_id = service["id"]
                 break
 
-        settings = loads(check_output(["curl", f"localhost:{autoscaler_port}/services/{service_id}"]))
+        settings = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services/{service_id}"]))
         settings["scaleUp"] = self.scale_up
         settings["scaleDown"] = self.scale_down
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
 
         system(f"""
-            curl localhost:{autoscaler_port}/services --json '{dumps(services)}'
-            curl localhost:{autoscaler_port}/services/{service_id}/settings --json '{dumps(settings)}'
-            curl localhost:{autoscaler_port}/services/start
+            curl localhost:{autoscaler_exposed_port}/services --json '{dumps(services)}'
+            curl localhost:{autoscaler_exposed_port}/services/{service_id}/settings --json '{dumps(settings)}'
+            curl localhost:{autoscaler_exposed_port}/services/start
         """)
