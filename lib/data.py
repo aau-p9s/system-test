@@ -120,48 +120,48 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
         "apiVersion": "apps/v1",
         "kind": "Deployment",
         "metadata": {
-            "name": "autoscaler",
-            "spec": {
-                "replicas": 1,
-                "selector": {
-                    "matchLabels": {
+            "name": "autoscaler"
+        },
+        "spec": {
+            "replicas": 1,
+            "selector": {
+                "matchLabels": {
+                    "app": "autoscaler"
+                }
+            },
+            "template": {
+                "metadata": {
+                    "labels": {
                         "app": "autoscaler"
                     }
                 },
-                "template": {
-                    "metadata": {
-                        "labels": {
-                            "app": "autoscaler"
+                "spec": {
+                    "serviceAccountName": "autoscaler",
+                    "containers": [
+                        {
+                            "name": "autoscaler",
+                            "image": "ghcr.io/aau-p9s/autoscaler:latest",
+                            "env": [
+                                { "name": name, "value": value }
+                                for name, value in {
+                                    "AUTOSCALER__APIS__FORECASTER": f"http://forecaster:{forecaster_port}",
+                                    "AUTOSCALER__APIS__KUBERNETES": "https://kubernetes",
+                                    "AUTOSCALER__APIS__PROMETHEUS": "http://10.43.26.12:80",
+                                    "AUTOSCALER__DEVELOPMENTMODE": "false",
+                                    "AUTOSCALER__PGSQL__DATABASE": db_name,
+                                    "AUTOSCALER__PGSQL__USER": db_user,
+                                    "AUTOSCALER__PGSQL__PASSWORD": db_password,
+                                    "AUTOSCALER__PGSQL__ADDR": "postgres",
+                                    "AUTOSCALER__PGSQL__PORT": str(db_port),
+                                    "AUTOSCALER__ADDR": "0.0.0.0",
+                                    "AUTOSCALER__PORT": str(autoscaler_port),
+                                    "AUTOSCALER__STARTRUNNER": "false",
+                                    "Logging__LogLevel__Autoscaler": "Debug"
+                                }.items()
+                            ],
+                            "ports": [{ "containerPort": autoscaler_port }]
                         }
-                    },
-                    "spec": {
-                        "serviceAccountName": "autoscaler",
-                        "containers": [
-                            {
-                                "name": "autoscaler",
-                                "image": "ghcr.io/aau-p9s/autoscaler:latest",
-                                "env": [
-                                    { "name": name, "value": value }
-                                    for name, value in {
-                                        "AUTOSCALER__APIS__FORECASTER": f"http://forecaster:{forecaster_port}",
-                                        "AUTOSCALER__APIS__KUBERNETES": "https://kubernetes",
-                                        "AUTOSCALER__APIS__PROMETHEUS": "http://10.43.26.12:80",
-                                        "AUTOSCALER__DEVELOPMENTMODE": "false",
-                                        "AUTOSCALER__PGSQL__DATABASE": db_name,
-                                        "AUTOSCALER__PGSQL__USER": db_user,
-                                        "AUTOSCALER__PGSQL__PASSWORD": db_password,
-                                        "AUTOSCALER__PGSQL__ADDR": "postgres",
-                                        "AUTOSCALER__PGSQL__PORT": str(db_port),
-                                        "AUTOSCALER__ADDR": "0.0.0.0",
-                                        "AUTOSCALER__PORT": str(autoscaler_port),
-                                        "AUTOSCALER__STARTRUNNER": "false",
-                                        "Logging__LogLevel__Autoscaler": "Debug"
-                                    }.items()
-                                ],
-                                "ports": [{ "containerPort": autoscaler_port }]
-                            }
-                        ]
-                    }
+                    ]
                 }
             }
         }
@@ -286,11 +286,17 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
                             "volumeMounts": [
                                 {
                                     "name": "postgres-storage",
-                                    "persistentVolumeClaim": {
-                                        "claimName": "postgres-pvc"
-                                    }
+                                    "mountPath": "/var/lib/postgresql/data",
                                 }
                             ]
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "name": "postgres-storage",
+                            "persistentVolumeClaim": {
+                                "claimName": "postgres-pvc"
+                            }
                         }
                     ]
                 }
