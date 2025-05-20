@@ -24,8 +24,10 @@ class StudyResult(TestCase):
             git clone https://github.com/aau-p9s/autoscaler /tmp/autoscaler
             git clone -b "feat/model_deployment_scripts" https://github.com/aau-p9s/forecaster /tmp/forecaster
             cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels /tmp/forecaster/Assets/models
+            cd /tmp/forecaster
             nix run path:/tmp/forecaster#reinit
             nix run path:/tmp/forecaster#deploy
+            cd -
         """)
 
         # Do the late deployments
