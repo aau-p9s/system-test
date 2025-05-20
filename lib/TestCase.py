@@ -126,7 +126,7 @@ class TestCase:
                 command,
             ] + args + (["-o", "json"] if json else []), stderr=DEVNULL)
         except CalledProcessError:
-            print(f"Kubectl command failed, continue? {failable}")
+            print(f"Kubectl command failed: [{command=}, {args=}], continue? {failable}")
             if not failable:
                 exit(1)
         if self.print_raw:
