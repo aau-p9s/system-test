@@ -19,7 +19,6 @@ class GroundTruth(TestCase):
             "hpa",
             self.target_deployment,
             "--patch",
-            f"'{dumps(patch_data)}'"
+            f"{dumps(patch_data)}"
         ])
-        os.system(f"kubectl patch hpa {self.target_deployment} --patch '{dumps(patch_data)}'")
         self.logged_delay(120)
