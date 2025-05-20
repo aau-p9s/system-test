@@ -10,7 +10,7 @@ from lib.Utils import curl, kubectl
 
 def make_log(start_time, end_time):
     duration = end_time - start_time
-    last_log = {'last': -1}
+    save_data = {'last': -1, "response_times": []}
 
     def log_progress(name, response_time, current_time):
         percentage = int(((current_time - start_time) / duration) * 100)
@@ -19,11 +19,14 @@ def make_log(start_time, end_time):
                 print(f"{name}:\t\t|\tProgress: {percentage}%\t\t|\tResponse time: {response_time}")
             case _:
                 rounded = (percentage // log_frequency) * log_frequency
+                save_data["response_times"].append(response_time)
                 if current_time < start_time or current_time > end_time:
                     return
-                if rounded > last_log['last']:
-                    last_log['last'] = rounded
-                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tResponse time: {response_time}")
+                if rounded > save_data['last']:
+                    save_data['last'] = rounded
+                    mean = sum(save_data["response_times"]) / len(save_data["response_times"])
+                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tMean Response time: {mean}")
+                    save_data["response_times"] = []
 
     return log_progress
             
