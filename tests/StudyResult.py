@@ -1,7 +1,10 @@
 from os import system
+import os
 from lib.TestCase import TestCase
 from json import dumps
-from lib.data import autoscaler_deployment
+from lib.Data import autoscaler_deployment
+from lib.Utils import copy_directory, curl, kubectl, logged_delay, clone_repository, nix
+from lib.Arguments import target_deployment
 
 autoscaler_port = 8080
 forecaster_port = 8081
@@ -21,62 +24,58 @@ class StudyResult(TestCase):
                 system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
 
         # wait for db to be ready
-        self.kubectl("wait", [
+        kubectl("wait", [
             "--for=condition=Available",
             "deployments/postgres"
         ])
         # a little extra just to be sure
-        self.logged_delay(10)
+        logged_delay(10)
 
         # reinit and deploy db
-        self.clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
-        self.clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
-        system("""
-            cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels /tmp/forecaster/Assets/models
-            cd /tmp/forecaster
-            nix run path:/tmp/forecaster#reinit
-            nix run path:/tmp/forecaster#deploy
-            cd -
-        """)
+        clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
+        clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
+        copy_directory("/tmp/autoscaler/Autoscaler.Api/BaselineModels/", "/tmp/forecaster/Assets/models")
+        nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
+        nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
 
         # Do the late deployments
         for kubeconfig in late_deployments:
             system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
-        # Wait for deployments ready
-        self.kubectl("wait", [
+        # Wait for deployments to be ready
+        kubectl("wait", [
             "--for=condition=Available",
             "deployments/autoscaler"
         ])
-        self.kubectl("wait", [
+        kubectl("wait", [
             "--for=condition=Available",
             "deployments/forecaster"
         ])
         # a little extra just to be sure
-        self.logged_delay(20)
+        logged_delay(20)
 
         print("Discovering services")
-        self.curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
         # let shit run
-        self.logged_delay(5)
+        logged_delay(5)
 
-        services = self.curl(f"localhost:{autoscaler_exposed_port}/services")
-        service = [service for service in services if service["name"] == self.target_deployment][0]
+        services = curl(f"localhost:{autoscaler_exposed_port}/services")
+        service = [service for service in services if service["name"] == target_deployment][0]
         service_id = service["id"]
         service["autoscalingEnabled"] = True
 
-        settings = self.curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
+        settings = curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
         settings["scaleUp"] = self.scale_up
         settings["scaleDown"] = self.scale_down
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
         
-        self.curl(f"localhost:{autoscaler_exposed_port}/services",  [
+        curl(f"localhost:{autoscaler_exposed_port}/services",  [
             "--json",
             f"'{dumps(service)}'"
         ], json=False)
-        self.curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
+        curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
             "--json",
             f"'{dumps(settings)}'"
         ], json=False)
         print("Rediscovering services")
-        self.curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)

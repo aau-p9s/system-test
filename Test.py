@@ -3,22 +3,6 @@ from tests.Baseline import Baseline
 from tests.GroundTruth import GroundTruth
 from tests.StudyResult import StudyResult
 
-import argparse
-import sys
-
-parser = argparse.ArgumentParser(sys.argv[0])
-parser.add_argument("target")
-parser.add_argument("target_deployment")
-parser.add_argument("--verbose", "-v", type=bool, default=False)
-
-args = vars(parser.parse_args())
-target = args["target"]
-target_deployment = args["target_deployment"]
-
-TestCase.target = args["target"]
-TestCase.target_deployment = args["target_deployment"]
-TestCase.verbose = args["verbose"]
-
 tests:list[TestCase] = [
     Baseline("Baseline-10x10", size={"x":10, "y":10}),
     GroundTruth("GroundTruth-10x10", size={"x":10, "y":10}),
