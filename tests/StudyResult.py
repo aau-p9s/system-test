@@ -1,7 +1,7 @@
 from os import system
 from subprocess import check_output
 from time import sleep
-from lib.TestCase import TestCase
+from lib.TestCase import TestCase, curl
 from json import dumps, loads
 from lib.data import autoscaler_deployment
 
@@ -10,6 +10,8 @@ forecaster_port = 8081
 postgres_port = 5432
 
 autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
+
+
 
 class StudyResult(TestCase):
     def kubernetes_setup(self):
@@ -47,24 +49,28 @@ class StudyResult(TestCase):
             kubectl wait --for=condition=Available deployments/forecaster
         """)
         # a little extra just to be sure
-        sleep(10)
+        sleep(20)
 
-        system(f"curl localhost:{autoscaler_exposed_port}/services/start")
+        curl(f"localhost:{autoscaler_exposed_port}/services/start")
         # let shit run
         sleep(5)
-        services = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services"]).decode())
+        services = curl(f"localhost:{autoscaler_exposed_port}/services")
         service = [service for service in services if service["name"] == self.target_deployment][0]
         service_id = service["id"]
         service["autoscalingEnabled"] = True
 
-        settings = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services/{service_id}"]))
+        settings = curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}")
         settings["scaleUp"] = self.scale_up
         settings["scaleDown"] = self.scale_down
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
-
-        system(f"""
-            curl localhost:{autoscaler_exposed_port}/services --json "{dumps(service)}"
-            curl localhost:{autoscaler_exposed_port}/services/{service_id}/settings --json "{dumps(settings)}"
-            curl localhost:{autoscaler_exposed_port}/services/start
-        """)
+        
+        curl(f"localhost:{autoscaler_exposed_port}/services",  [
+            "--json",
+            f"'{dumps(service)}'"
+        ])
+        curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
+            "--json",
+            f"'{dumps(settings)}'"
+        ])
+        curl(f"localhost:{autoscaler_exposed_port}/services/start")

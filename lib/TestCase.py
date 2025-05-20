@@ -4,7 +4,18 @@ import os
 import csv
 from json import dumps, loads
 from datetime import datetime
+from typing import Any
 from lib.data import autoscaler_deployment
+
+def curl(url:str, params:list[str] = []) -> Any:
+    raw_response = check_output([
+        "curl",
+        url,
+        " ".join(params)
+    ])
+    print(f"curl raw response: {raw_response}")
+    return loads(raw_response)
+
 
 class TestCase:
     target:str
@@ -41,8 +52,10 @@ class TestCase:
         end_time = start_time + self.period
         while time.time() < end_time:
             start_send = time.time()
-            cmd = f"curl {self.target} -d '{dumps(self.size)}'"
-            os.system(cmd)
+            curl(self.target, [
+                "-d",
+                f"'{dumps(self.size)}'"
+            ])
             end_send = time.time()
             response_time = end_send - start_send
             pod_count = loads(check_output(["kubectl", "get", "deploy", self.target_deployment, "-o", "json"]).decode())["spec"]["replicas"]
