@@ -47,11 +47,11 @@ class TestCase:
             start_send = time.time()
             try:
                 self.curl(self.target, [
-                    "-d",
+                    "--json",
                     f"'{dumps(self.size)}'"
                 ], json=False)
             except CalledProcessError as e:
-                print(f"Curl got error: {e.returncode}")
+                print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
                 got_error = True
             end_send = time.time()
             response_time = end_send - start_send
