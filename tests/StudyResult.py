@@ -45,7 +45,7 @@ class StudyResult(TestCase):
             kubectl wait --for=condition=Available deployments/forecaster
         """)
 
-        system(f"curl localhost:{autoscaler_port}/services/start")
+        system(f"curl localhost:{autoscaler_exposed_port}/services/start")
         services = loads(check_output(["curl", f"localhost:{autoscaler_exposed_port}/services"]).decode())
         service_id = ""
         for i, service in enumerate(services):
