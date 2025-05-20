@@ -1,3 +1,4 @@
+from os import get_terminal_size
 from lib.TestCase import TestCase
 from tests.Baseline import Baseline
 from tests.GroundTruth import GroundTruth
@@ -28,5 +29,6 @@ for test in tests:
         print(f"test duration: {test.period} seconds")
         test.run()
     print(f"{test}\nFinshed, saving results...")
+    print("-"*get_terminal_size()[0])
 
     test.save()
