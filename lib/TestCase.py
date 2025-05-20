@@ -4,6 +4,7 @@ import os
 import csv
 from json import dumps, loads
 from datetime import datetime
+from lib.data import autoscaler_deployment
 
 class TestCase:
     target:str
@@ -67,5 +68,9 @@ class TestCase:
         print("Cleaning up kubernetes environment...")
         os.system(f"""
             kubectl delete hpa {self.target_deployment}
-            kubectl delete deployment autoscaler forecaster
         """)
+        data = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
+        for kubeconfig in data:
+            name = kubeconfig["metadata"]["name"]
+            kind = kubeconfig["kind"]
+            os.system(f"kubectl delete {kind} {name}")
