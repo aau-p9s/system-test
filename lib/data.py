@@ -1,25 +1,25 @@
-workload_api_deployment = lambda memory_req, cpu_req, memory_lim, cpu_lim: {
+workload_api_deployment = lambda name, memory_req, cpu_req, memory_lim, cpu_lim: {
     "apiVersion": "apps/v1",
     "kind": "Deployment",
     "metadata": {
-        "name": "workload-api-deployment"
+        "name": name
     },
     "spec": {
         "selector": {
             "matchLabels": {
-                "app": "workload-api"
+                "app": name
             }
         },
         "template": {
             "metadata": {
                 "labels": {
-                    "app": "workload-api"
+                    "app": name
                 }
             },
             "spec": {
                 "containers": [
                     {
-                        "name": "workload-api",
+                        "name": name,
                         "image": "ghcr.io/aau-p9s/workload-api:latest",
                         "environment": {
                             "WORKLOAD_PORT": 8123
