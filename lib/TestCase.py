@@ -62,3 +62,10 @@ class TestCase:
                 
     def kubernetes_setup(self):
         print("Setup unsupported")
+
+    def cleanup(self):
+        print("Cleaning up kubernetes environment...")
+        os.system(f"""
+            kubectl delete hpa {self.target_deployment}
+            kubectl delete deployment autoscaler forecaster
+        """)

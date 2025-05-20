@@ -24,6 +24,7 @@ tests:list[TestCase] = [
 ]
 
 for test in tests:
+    test.cleanup()
     test.kubernetes_setup()
     for runid in range(test.tests):
         print(f"starting run #{runid}")
