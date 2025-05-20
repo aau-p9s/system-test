@@ -11,7 +11,7 @@ from lib.data import autoscaler_deployment
 class TestCase:
     target:str
     target_deployment:str
-    print_raw:bool
+    verbose:bool
     size:dict[str, int]
     period:int
     delay:int
@@ -94,7 +94,7 @@ class TestCase:
             "curl",
             url,
         ] + params, stderr=DEVNULL)
-        if self.print_raw:
+        if self.verbose:
             print(f"curl raw response: {raw_response}")
         if json:
             return loads(raw_response)
@@ -126,10 +126,11 @@ class TestCase:
                 command,
             ] + args + (["-o", "json"] if json else []), stderr=DEVNULL)
         except CalledProcessError:
-            print(f"Kubectl command failed: [{command=}, {args=}], continue? {failable}")
+            if self.verbose or not failable:
+                print(f"Kubectl command failed: [{command=}, {args=}], continue? {failable}")
             if not failable:
                 exit(1)
-        if self.print_raw:
+        if self.verbose:
             print(f"kubernetes raw response: {raw_response}")
         if json:
             return loads(raw_response)
