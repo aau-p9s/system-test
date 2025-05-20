@@ -65,7 +65,7 @@ class StudyResult(TestCase):
         curl(f"localhost:{autoscaler_exposed_port}/services",  [
             "--json",
             f"'{dumps(service)}'"
-        ])
+        ], json=False)
         curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
             "--json",
             f"'{dumps(settings)}'"
