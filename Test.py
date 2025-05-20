@@ -6,10 +6,18 @@ import lib.Arguments as args # force entire module to load
 
 print(f"argparse name: {args.parser.prog}")
 
+size = {
+    "x": 10,
+    "y": 10
+}
+
 tests:list[TestCase] = [
-    Baseline("Baseline-10x10", size={"x":10, "y":10}),
-    GroundTruth("GroundTruth-10x10", size={"x":10, "y":10}),
-    StudyResult("StudyResult-10x10", size={"x":10, "y":10})
+    Baseline("Quick-Baseline-10x10", size=size, period=360),
+    GroundTruth("Quick-GroundTruth-10x10", size=size, period=360),
+    StudyResult("Quick-StudyResult-10x10", size=size, period=360),
+    Baseline("Baseline-10x10", size=size),
+    GroundTruth("GroundTruth-10x10", size=size),
+    StudyResult("StudyResult-10x10", size=size)
 ]
 
 for test in tests:

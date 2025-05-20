@@ -38,11 +38,11 @@ class TestCase:
 
     def run(self):
         results:dict[float, dict[str, float | int]] = {}
-        start_time = time.time()
+        start_time = time.perf_counter()
         end_time = start_time + self.period
-        while time.time() < end_time:
+        while time.perf_counter() < end_time:
             got_error = False
-            start_send = time.time()
+            start_send = time.perf_counter()
             try:
                 curl(target, [
                     "--json",
@@ -51,7 +51,7 @@ class TestCase:
             except CalledProcessError as e:
                 print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
                 got_error = True
-            end_send = time.time()
+            end_send = time.perf_counter()
             response_time = end_send - start_send
             pod_count = kubectl("get", ["deploy", target_deployment], json=True)["spec"]["replicas"]
             results[start_send] = {"response_time": response_time, "pod_count": pod_count, "error":got_error}
