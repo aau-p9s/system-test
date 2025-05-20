@@ -1,5 +1,5 @@
 from os import system
-from lib.TestCase import TestCase, curl, logged_delay
+from lib.TestCase import TestCase, clone_repository, curl, logged_delay
 from json import dumps
 from lib.data import autoscaler_deployment
 
@@ -26,10 +26,9 @@ class StudyResult(TestCase):
         logged_delay(10)
 
         # reinit and deploy db
+        clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
+        clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
         system("""
-            rm -rf /tmp/autoscaler /tmp/forecaster
-            git clone https://github.com/aau-p9s/autoscaler /tmp/autoscaler
-            git clone -b "feat/model_deployment_scripts" https://github.com/aau-p9s/forecaster /tmp/forecaster
             cp -r /tmp/autoscaler/Autoscaler.Api/BaselineModels /tmp/forecaster/Assets/models
             cd /tmp/forecaster
             nix run path:/tmp/forecaster#reinit

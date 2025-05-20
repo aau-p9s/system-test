@@ -1,4 +1,4 @@
-from subprocess import CalledProcessError, check_output
+from subprocess import CalledProcessError, check_call, check_output
 import time
 import os
 import csv
@@ -15,6 +15,21 @@ def curl(url:str, params:list[str] = [], json=True) -> Any:
     print(f"curl raw response: {raw_response}")
     if json:
         return loads(raw_response)
+
+def clone_repository(url:str, target_directory:str, branch:str = "main"):
+    os.rmdir(target_directory)
+    print(f"Cloning Repository: {url}[{branch}] -> {target_directory}")
+    if(check_call([
+        "git",
+        "clone",
+        url,
+        "-b",
+        branch,
+        target_directory
+    ])):
+        print("Failed to clone repo")
+        exit(1)
+
 
 def logged_delay(delay):
     print(f"Current thread is waiting for {delay} seconds")
