@@ -46,6 +46,8 @@ class StudyResult(TestCase):
             kubectl wait --for=condition=Available deployments/autoscaler
             kubectl wait --for=condition=Available deployments/forecaster
         """)
+        # a little extra just to be sure
+        sleep(10)
 
         system(f"curl localhost:{autoscaler_exposed_port}/services/start")
         # let shit run
