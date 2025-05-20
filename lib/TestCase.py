@@ -55,8 +55,7 @@ class TestCase:
             response_time = end_send - start_send
             pod_count = kubectl("get", ["deploy", target_deployment], json=True)["spec"]["replicas"]
             results[start_send] = {"response_time": response_time, "pod_count": pod_count, "error":got_error}
-            wait_time = self.delay - response_time
-            print(f"{wait_time=}")
+            print(f"Got response in {response_time}")
         self.response_data.append(results)
 
     def save(self):
