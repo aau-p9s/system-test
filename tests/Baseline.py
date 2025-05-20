@@ -15,7 +15,7 @@ class Baseline(TestCase):
             "deployment",
             self.target_deployment,
             "--patch",
-            f"'{dumps(data)}'"
+            f"{dumps(data)}"
         ])
         while self.kubectl("get", ["deployment", self.target_deployment], json=True)["spec"]["replicas"] != 1:
             pass
