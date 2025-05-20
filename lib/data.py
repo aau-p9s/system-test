@@ -232,7 +232,7 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
     {
         "apiVersion": "v1",
         "kind": "Service",
-        "metadta": {
+        "metadata": {
             "name": "forecaster"
         },
         "spec": {
