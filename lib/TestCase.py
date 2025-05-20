@@ -8,19 +8,24 @@ from lib.Data import autoscaler_deployment
 from lib.Arguments import target, target_deployment, log_frequency
 from lib.Utils import curl, kubectl
 
-last_log = 0
+def make_log(start_time, end_time):
+    duration = end_time - start_time
+    last_log = -1
+    def log_progress(name, response_time, current_time):
+        percentage = int(((current_time - start_time) / duration) * 100)
+        match log_frequency:
+            case -1:
+                print(f"{name}:\t\t|\tProgress: {percentage}%\t\t|\tResponse time: {response_time}")
+            case _:
+                rounded = (percentage // log_frequency) * log_frequency
+                if current_time < start_time or current_time > end_time:
+                    return
+                if rounded > last_log:
+                    last_log = rounded
+                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tResponse time: {response_time}")
 
-def log(name:str, response_time:float, progress_percentage:int):
-    global last_log
-    match log_frequency:
-        case -1:
-            print(f"{name}:\t\t|\tProgress: {progress_percentage}%\t\t|\tResponse time: {response_time}")
-        case _:
-            if progress_percentage >= (last_log + log_frequency):
-                print(f"{name}:\t\t|\tProgress: {progress_percentage}%\t\t|\tResponse time: {response_time}")
-                last_log += log_frequency
-
-
+    return log_progress
+            
 
 class TestCase:
     size:dict[str, int]
@@ -51,11 +56,13 @@ class TestCase:
 
     def run(self):
         results:dict[float, dict[str, float | int]] = {}
-        start_time = time.perf_counter()
+        start_time = time.time()
         end_time = start_time + self.period
-        while time.perf_counter() < end_time:
+        log = make_log(start_time, end_time)
+
+        while time.time() < end_time:
             got_error = False
-            start_send = time.perf_counter()
+            start_send = time.time()
             try:
                 curl(target, [
                     "--json",
@@ -64,11 +71,11 @@ class TestCase:
             except CalledProcessError as e:
                 print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
                 got_error = True
-            end_send = time.perf_counter()
+            end_send = time.time()
             response_time = end_send - start_send
             pod_count = kubectl("get", ["deploy", target_deployment], json=True)["spec"]["replicas"]
             results[start_send] = {"response_time": response_time, "pod_count": pod_count, "error":got_error}
-            log(self.name, response_time, int(((end_send - start_time) / end_time) * 100))
+            log(self.name, response_time, end_send)
         self.response_data.append(results)
 
     def save(self):
