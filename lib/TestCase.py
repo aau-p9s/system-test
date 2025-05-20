@@ -10,14 +10,14 @@ from lib.Utils import curl, kubectl
 
 last_log = 0
 
-def log(response_time:float, progress_percentage:int):
+def log(name:str, response_time:float, progress_percentage:int):
     global last_log
     match log_frequency:
         case -1:
-            print(f"Progress: {progress_percentage}%\tResponse time: {response_time}")
+            print(f"{name}:\t\t|\tProgress: {progress_percentage}%\t\t|\tResponse time: {response_time}")
         case _:
             if progress_percentage >= (last_log + log_frequency):
-                print(f"Progress: {progress_percentage}%\tResponse time: {response_time}")
+                print(f"{name}:\t\t|\tProgress: {progress_percentage}%\t\t|\tResponse time: {response_time}")
                 last_log += log_frequency
 
 
@@ -68,7 +68,7 @@ class TestCase:
             response_time = end_send - start_send
             pod_count = kubectl("get", ["deploy", target_deployment], json=True)["spec"]["replicas"]
             results[start_send] = {"response_time": response_time, "pod_count": pod_count, "error":got_error}
-            log(response_time, int(((end_send - start_time) / end_time) * 100))
+            log(self.name, response_time, int(((end_send - start_time) / end_time) * 100))
         self.response_data.append(results)
 
     def save(self):
