@@ -1,5 +1,5 @@
 from os import system
-from lib.TestCase import TestCase, clone_repository, curl, logged_delay
+from lib.TestCase import TestCase, clone_repository, curl, kubectl, logged_delay
 from json import dumps
 from lib.data import autoscaler_deployment
 
@@ -21,7 +21,10 @@ class StudyResult(TestCase):
                 system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
 
         # wait for db to be ready
-        system("kubectl wait --for=condition=Available deployments/postgres")
+        kubectl("wait", [
+            "--for=condition=Available",
+            "deployments/postgres"
+        ])
         # a little extra just to be sure
         logged_delay(10)
 
@@ -40,16 +43,21 @@ class StudyResult(TestCase):
         for kubeconfig in late_deployments:
             system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
         # Wait for deployments ready
-        system("""
-            kubectl wait --for=condition=Available deployments/autoscaler
-            kubectl wait --for=condition=Available deployments/forecaster
-        """)
+        kubectl("wait", [
+            "--for=condition=Available",
+            "deployments/autoscaler"
+        ])
+        kubectl("wait", [
+            "--for=condition=Available",
+            "deployments/forecaster"
+        ])
         # a little extra just to be sure
         logged_delay(20)
 
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
         # let shit run
         logged_delay(5)
+
         services = curl(f"localhost:{autoscaler_exposed_port}/services")
         service = [service for service in services if service["name"] == self.target_deployment][0]
         service_id = service["id"]

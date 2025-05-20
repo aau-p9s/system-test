@@ -1,7 +1,5 @@
-from json import dumps, loads
-import os
-from lib.TestCase import TestCase
-from subprocess import check_output
+from json import dumps
+from lib.TestCase import TestCase, kubectl
 
 class Baseline(TestCase):
     def __init__(self, name, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, tests:int = 1):
@@ -13,7 +11,12 @@ class Baseline(TestCase):
                 "replicas":1
             }
         }
-        os.system(f"kubectl patch deployment {self.target_deployment} --patch '{dumps(data)}'")
-        while loads(check_output(["kubectl", "get", "deploy", self.target_deployment, "-o", "json"]).decode())["spec"]["replicas"] != 1:
+        kubectl("patch", [
+            "deployment",
+            self.target_deployment,
+            "--patch",
+            f"'{dumps(data)}'"
+        ])
+        while kubectl("get", ["deployment", self.target_deployment], json=True)["spec"]["replicas"] != 1:
             pass
         
