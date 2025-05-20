@@ -23,6 +23,8 @@ class StudyResult(TestCase):
 
         # wait for db to be ready
         system("kubectl wait --for=condition=Available deployments/postgres")
+        # a little extra just to be sure
+        sleep(10)
 
         # reinit and deploy db
         system("""
