@@ -35,11 +35,17 @@ def clone_repository(url:str, target_directory:str, branch:str = "main"):
         print(f"Failed to clone repo [{e.returncode}]")
         exit(1)
 
-def kubectl(command, args, json=False) -> Any:
-    raw_response = check_output([
-        "kubectl",
-        command,
-    ] + args + (["-o", "json"] if json else []), stderr=DEVNULL)
+def kubectl(command, args, json=False, failable=False) -> Any:
+    raw_response = ""
+    try:
+        raw_response = check_output([
+            "kubectl",
+            command,
+        ] + args + (["-o", "json"] if json else []), stderr=DEVNULL)
+    except CalledProcessError:
+        print(f"Kubectl command failed, continue? {failable}")
+        if not failable:
+            exit(1)
     print(f"kubernetes raw response: {raw_response}")
     if json:
         return loads(raw_response)
