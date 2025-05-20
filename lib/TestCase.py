@@ -126,7 +126,7 @@ class TestCase:
         kubectl("delete", [
             "hpa",
             self.target_deployment
-        ])
+        ], failable=True)
         data = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
         for kubeconfig in data:
             name = kubeconfig["metadata"]["name"]
@@ -134,4 +134,4 @@ class TestCase:
             kubectl("delete", [
                 kind,
                 name
-            ])
+            ], failable=True)
