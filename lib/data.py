@@ -98,6 +98,25 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
         ]
     },
     {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRoleBinding",
+        "metadata": {
+            "name": "autoscaler-rolebinding"
+        },
+        "roleRef": {
+            "apiGroup": "rbac.authorization.k8s.io",
+            "kind": "ClusterRole",
+            "name": "autoscaler-role",
+        },
+        "subjects": [
+            {
+                "kind": "ServiceAccount",
+                "name": "autoscaler",
+                "namespace": "default"
+            }
+        ]
+    },
+    {
         "apiVersion": "apps/v1",
         "kind": "Deployment",
         "metadata": {
