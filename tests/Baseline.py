@@ -8,8 +8,8 @@ class Baseline(TestCase):
         super().__init__(name, size, period, delay, tests)
 
     def kubernetes_setup(self):
-        os.system("""
-            kubectl delete hpa workload-api-deployment
+        os.system(f"""
+            kubectl delete hpa {self.target_deployment}
             kubectl delete deployment autoscaler forecaster
         """)
         data = {
@@ -17,7 +17,7 @@ class Baseline(TestCase):
                 "replicas":1
             }
         }
-        os.system(f"kubectl patch deployment workload-api-deployment --patch '{dumps(data)}'")
-        while loads(check_output(["kubectl", "get", "deploy", "workload-api-deployment", "-o", "json"]).decode())["spec"]["replicas"] != 1:
+        os.system(f"kubectl patch deployment {self.target_deployment} --patch '{dumps(data)}'")
+        while loads(check_output(["kubectl", "get", "deploy", self.target_deployment, "-o", "json"]).decode())["spec"]["replicas"] != 1:
             pass
         
