@@ -1,6 +1,6 @@
-from json import loads
+from json import dumps, loads
 from os import chdir, curdir, path, system
-from subprocess import DEVNULL, CalledProcessError, check_call, check_output
+from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
 from time import sleep
 from typing import Any
 from lib.Arguments import verbose
@@ -71,6 +71,23 @@ def kubectl(command, args, json=False, failable=False) -> Any:
         print(f"kubernetes raw response: {raw_response}")
     if json:
         return loads(raw_response)
+
+def kubectl_apply(data:Any):
+    output = None if verbose else DEVNULL
+    try:
+        data_pipe = Popen([
+            "echo", 
+            dumps(data)
+        ], stdout=PIPE)
+        check_call([
+            "kubectl",
+            "apply",
+            "-f",
+            "-"
+        ], stderr=output, stdout=output, stdin=data_pipe.stdout)
+    except CalledProcessError:
+        print(f"Failed to apply patch: {dumps(data, indent=4)}")
+        exit(1)
 
 def nix(command, flake, working_directory=""):
     output = None if verbose else DEVNULL

@@ -1,10 +1,9 @@
-from subprocess import DEVNULL, CalledProcessError, check_call, check_output
+from subprocess import CalledProcessError
 import time
 import os
 import csv
-from json import dumps, loads
+from json import dumps
 from datetime import datetime
-from typing import Any
 from lib.Data import autoscaler_deployment
 from lib.Arguments import target, target_deployment
 from lib.Utils import curl, kubectl

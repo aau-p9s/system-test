@@ -1,9 +1,7 @@
-from os import system
-import os
 from lib.TestCase import TestCase
 from json import dumps
 from lib.Data import autoscaler_deployment
-from lib.Utils import copy_directory, curl, kubectl, logged_delay, clone_repository, nix
+from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix
 from lib.Arguments import target_deployment
 
 autoscaler_port = 8080
@@ -21,7 +19,7 @@ class StudyResult(TestCase):
             if kubeconfig["metadata"]["name"] in ["autoscaler", "forecaster"] and kubeconfig["kind"] == "Deployment":
                 late_deployments.append(kubeconfig)
             else:
-                system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
+                kubectl_apply(kubeconfig)
 
         # wait for db to be ready
         kubectl("wait", [
@@ -40,7 +38,7 @@ class StudyResult(TestCase):
 
         # Do the late deployments
         for kubeconfig in late_deployments:
-            system(f"echo '{dumps(kubeconfig)}' | kubectl apply -f -")
+            kubectl_apply(kubeconfig)
         # Wait for deployments to be ready
         kubectl("wait", [
             "--for=condition=Available",
