@@ -132,9 +132,9 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
                                         "AUTOSCALER__PGSQL__USER": db_user,
                                         "AUTOSCALER__PGSQL__PASSWORD": db_password,
                                         "AUTOSCALER__PGSQL__ADDR": "postgres",
-                                        "AUTOSCALER__PGSQL__PORT": db_port,
+                                        "AUTOSCALER__PGSQL__PORT": str(db_port),
                                         "AUTOSCALER__ADDR": "0.0.0.0",
-                                        "AUTOSCALER__PORT": autoscaler_port,
+                                        "AUTOSCALER__PORT": str(autoscaler_port),
                                         "AUTOSCALER__STARTRUNNER": "false",
                                         "Logging__LogLevel__Autoscaler": "Debug"
                                     }.items()
@@ -199,9 +199,9 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
                                     "FORECASTER__PGSQL__USER": db_user,
                                     "FORECASTER__PGSQL__PASSWORD": db_password,
                                     "FORECASTER__PGSQL__ADDR": "postgres",
-                                    "FORECASTER__PGSQL__PORT": db_port,
+                                    "FORECASTER__PGSQL__PORT": str(db_port),
                                     "FORECASTER__ADDR": "0.0.0.0",
-                                    "FORECASTER__PORT": forecaster_port
+                                    "FORECASTER__PORT": str(forecaster_port)
                                 }.items()
                             ]
                         }
