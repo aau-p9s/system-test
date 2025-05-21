@@ -22,9 +22,15 @@ tests:list[TestCase] = [
     Baseline("Short-Baseline-10x10", size=size, period=60*60*6),
     GroundTruth("Short-GroundTruth-10x10", size=size, period=60*60*6),
     StudyResult("Short-StudyResult-10x10", size=size, period=60*60*6),
+    Baseline("Short-Baseline-3-10x10", size=size, period=60*60*6, workload_count=3),
+    GroundTruth("Short-GroundTruth-3-10x10", size=size, period=60*60*6, workload_count=3),
+    StudyResult("Short-StudyResult-3-10x10", size=size, period=60*60*6, workload_count=3),
     Baseline("Baseline-10x10", size=size),
     GroundTruth("GroundTruth-10x10", size=size),
-    StudyResult("StudyResult-10x10", size=size)
+    StudyResult("StudyResult-10x10", size=size),
+    Baseline("Baseline-3-10x10", size=size, workload_count=3),
+    GroundTruth("GroundTruth-3-10x10", size=size, workload_count=3),
+    StudyResult("StudyResult-3-10x10", size=size, workload_count=3)
 ]
 
 for test in tests:
