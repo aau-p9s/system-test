@@ -88,7 +88,7 @@ def kubectl_apply(data:Any):
             "-"
         ], stderr=output, stdout=output, stdin=data_pipe.stdout)
     except CalledProcessError:
-        print(f"Failed to apply patch: {dumps(data, indent=4)}")
+        print(f"Failed to apply: {dumps(data, indent=4)}")
         exit(1)
 
 def nix(command, flake, working_directory=""):
