@@ -13,7 +13,7 @@ def curl(url:str, params:list[str] = [], json=True) -> Any:
     raw_response = check_output([
         "curl",
         url,
-    ] + params, stderr=output)
+    ] + params, stderr=output).decode()
     if verbose:
         print(f"curl raw response: {raw_response}")
     if json:
@@ -64,7 +64,7 @@ def kubectl(command, args, json=False, failable=False) -> Any:
         raw_response = check_output([
             "kubectl",
             command,
-        ] + args + (["-o", "json"] if json else []), stderr=output)
+        ] + args + (["-o", "json"] if json else []), stderr=output).decode()
     except CalledProcessError:
         if verbose or not failable:
             print(f"Kubectl command failed: [{command=}, {args=}], continue? {failable}")

@@ -70,7 +70,7 @@ class StudyResult(TestCase):
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
         
-        if not curl(f"localhost:{autoscaler_exposed_port}/services",  [
+        if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}",  [
             "--json",
             dumps(service)
         ], json=False) == "true":
