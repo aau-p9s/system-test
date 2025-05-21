@@ -16,6 +16,9 @@ tests:list[TestCase] = [
     Baseline("Quick-Baseline-10x10", size=size, period=600),
     GroundTruth("Quick-GroundTruth-10x10", size=size, period=600),
     StudyResult("Quick-StudyResult-10x10", size=size, period=600),
+    Baseline("Short-Baseline-10x10", size=size, period=60*60*6),
+    GroundTruth("Short-GroundTruth-10x10", size=size, period=60*60*6),
+    StudyResult("Short-StudyResult-10x10", size=size, period=60*60*6),
     Baseline("Baseline-10x10", size=size),
     GroundTruth("GroundTruth-10x10", size=size),
     StudyResult("StudyResult-10x10", size=size)
