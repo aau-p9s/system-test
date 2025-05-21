@@ -2,10 +2,11 @@ from typing import Any
 
 def make_path(path: str, value: Any) -> dict[str, Any]:
     levels = path.split(".")
+    print(path)
     if len(levels) == 1:
         return { levels[0]: value }
     else:
-        return { levels[0]: make_path(path[len(levels[0]):], value) }
+        return { levels[0]: make_path(path[len(levels[0])+1:], value) }
 
 
 def make_deployment(name: str, containers: list[dict[str, Any]], service_account_name = None) -> dict[str, Any]:
