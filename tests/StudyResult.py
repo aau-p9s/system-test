@@ -65,8 +65,8 @@ class StudyResult(TestCase):
         service["autoscalingEnabled"] = True
 
         settings = curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
-        settings["scaleUp"] = self.scale_up
-        settings["scaleDown"] = self.scale_down
+        settings["scaleUp"] = int(self.scale_up*100)
+        settings["scaleDown"] = int(self.scale_down*100)
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
         
