@@ -63,7 +63,8 @@ class TestCase:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
-        results:dict[str, list[list[Any]]] = {}
+        results:dict[str, list[list[Any]]] = { name: [] for name in self.workload_kubeconfigs }
+
         start_time = time.time()
         end_time = start_time + self.period
         log = make_log(start_time, end_time)
