@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 from lib.Data import autoscaler_deployment, workload_deployment_configs
 from lib.Arguments import log_frequency
-from lib.Utils import curl, kubectl, kubectl_apply
+from lib.Utils import curl, kubectl, kubectl_apply, logged_delay
 
 def make_log(start_time, end_time):
     duration = end_time - start_time
@@ -64,6 +64,7 @@ class TestCase:
 
     def run(self):
         results:dict[str, list[list[Any]]] = { name: [] for name in self.workload_kubeconfigs }
+        logged_delay(5)
 
         start_time = time.time()
         end_time = start_time + self.period
