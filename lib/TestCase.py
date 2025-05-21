@@ -122,9 +122,9 @@ class TestCase:
             ], failable=True)
 
         # Workload Deployments
-        for name, kubeconfigs in self.workload_kubeconfigs.items():
+        for workload_name, kubeconfigs in self.workload_kubeconfigs.items():
             for key, kubeconfig in kubeconfigs.items():
-                print(f"Cleaning {name} - {key}")
+                print(f"Cleaning {workload_name} - {key}")
                 name = kubeconfig["metadata"]["name"]
                 kind = kubeconfig["kind"]
                 kubectl("delete", [

@@ -11,6 +11,7 @@ class Baseline(TestCase):
             }
         }
         for name in self.workload_kubeconfigs:
+            
             kubectl("patch", [
                 "deployment",
                 name,
