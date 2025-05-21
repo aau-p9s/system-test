@@ -61,7 +61,7 @@ class StudyResult(TestCase):
 
         services = curl(f"localhost:{autoscaler_exposed_port}/services")
         for name in self.workload_kubeconfigs:
-            service = [service for service in services if service["name"] == name][0]
+            service = [service for service in services if service["name"] == f"{name}-api"][0]
             service_id = service["id"]
             service["autoscalingEnabled"] = True
 
