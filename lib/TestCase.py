@@ -54,7 +54,7 @@ class TestCase:
         self.kubeconfigs = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
         
         self.workload_kubeconfigs = {
-            f"workload_{i}": workload_deployment_configs(f"workload_{i}", 8082 + (i*2), size) 
+            f"workload-{i}": workload_deployment_configs(f"workload-{i}", 8082 + (i*2), size) 
             for i in range(workload_count)
         }
 
@@ -134,4 +134,4 @@ class TestCase:
                 kubectl("delete", [
                     "hpa",
                     name
-                ])
+                ], failable=True)
