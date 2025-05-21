@@ -1,50 +1,124 @@
-workload_api_deployment = lambda name, memory_req, cpu_req, memory_lim, cpu_lim: {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-        "name": name
-    },
-    "spec": {
-        "selector": {
-            "matchLabels": {
-                "app": name
-            }
+workload_deployment_configs = lambda name, port, size: {
+    "api": {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+            "name": f"{name}-api"
         },
-        "template": {
-            "metadata": {
-                "labels": {
-                    "app": name
+        "spec": {
+            "selector": {
+                "matchLabels": {
+                    "app": f"{name}-api"
                 }
             },
-            "spec": {
-                "containers": [
-                    {
-                        "name": name,
-                        "image": "ghcr.io/aau-p9s/workload-api:latest",
-                        "environment": {
-                            "WORKLOAD_PORT": 8123
-                        },
-                        "ports": [
-                            {
-                                "containerPort": 8123
-                            }
-                        ],
-                        "resources": {
-                            "requests": {
-                                "memory": memory_req,
-                                "cpu": cpu_req
-                            },
-                            "limits": {
-                                "memory": memory_lim,
-                                "cpu": cpu_lim
-                            }
-                        }
+            "template": {
+                "metadata": {
+                    "labels": {
+                        "app": f"{name}-api"
                     }
-                ]
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "name": f"{name}-api",
+                            "image": "ghcr.io/aau-p9s/workload-api:latest",
+                            "env": [
+                                { "name": name, "value": value }
+                                for name, value in {
+                                    "WORKLOAD_PORT": str(port)
+                                }.items()
+                            ],
+                            "ports": [{ "containerPort": port }]
+                        }
+                    ]
+                }
             }
+        }
+    },
+    "generator": {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+            "name": f"{name}-generator"
+        },
+        "spec": {
+            "replicas": 1,
+            "selector": {
+                "matchLabels": {
+                    "app": f"{name}-generator"
+                }
+            },
+            "template": {
+                "metadata": {
+                    "labels": {
+                        "app": f"{name}-generator"
+                    }
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "name": f"{name}-generator",
+                            "image": "ghcr.io/aau-p9s/workload-generator:latest",
+                            "env": [
+                                { "name": name, "value": value }
+                                for name, value in {
+                                    "GENERATOR_API_ADDR": f"{name}-api",
+                                    "GENERATOR_API_PORT": str(port),
+                                    "GENERATOR_PORT": str(port+1),
+                                    "GENERATOR_X": str(size["x"]),
+                                    "GENERATOR_Y": str(size["y"])
+                                }.items()
+                            ],
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "api-service": {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+            "name": f"{name}-api"
+        },
+        "spec": {
+            "type": "NodePort",
+            "selector": {
+                "app": f"{name}-api"
+            },
+            "ports": [
+                {
+                    "protocol": "TCP",
+                    "port": port,
+                    "targetPort": port,
+                    "nodePort": 30000 + (port % 1000)
+                }
+            ]
+        }
+    },
+    "generator-service": {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+            "name": f"{name}-generator"
+        },
+        "spec": {
+            "type": "NodePort",
+            "selector": {
+                "app": f"{name}-generator"
+            },
+            "ports": [
+                {
+                    "protocol": "TCP",
+                    "port": port+1,
+                    "targetPort": port+1,
+                    "nodePort": 30000 + ((port+1) % 1000)
+                }
+            ]
         }
     }
 }
+
 hpa_patch = lambda min, max, scale_down, scale_up: {
     "spec":{
         "maxReplicas":max,

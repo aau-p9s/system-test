@@ -4,9 +4,10 @@ import os
 import csv
 from json import dumps
 from datetime import datetime
-from lib.Data import autoscaler_deployment
-from lib.Arguments import target, target_deployment, log_frequency
-from lib.Utils import curl, kubectl
+from typing import Any
+from lib.Data import autoscaler_deployment, workload_deployment_configs
+from lib.Arguments import log_frequency
+from lib.Utils import curl, kubectl, kubectl_apply
 
 def make_log(start_time, end_time):
     duration = end_time - start_time
@@ -41,17 +42,21 @@ class TestCase:
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, name, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, tests:int = 1, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10):
+    def __init__(self, name, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10, workload_count:int = 1):
         self.size = size
         self.period = period
         self.delay = delay
-        self.tests = tests
         self.scale_up = scale_up
         self.scale_down = scale_down
         self.min_replicas = min_replicas
         self.max_replicas = max_replicas
-        self.response_data:list[dict[float, dict[str, float | int]]] = []
         self.name = name
+        self.kubeconfigs = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
+        
+        self.workload_kubeconfigs = {
+            f"workload_{i}": workload_deployment_configs(f"workload_{i}", 8082 + (i*2), size) 
+            for i in range(workload_count)
+        }
 
         print(f"Initialized {self}")
 
@@ -59,50 +64,56 @@ class TestCase:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.tests=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
-        results:dict[float, dict[str, float | int]] = {}
+        results:dict[str, list[list[Any]]] = {}
         start_time = time.time()
         end_time = start_time + self.period
         log = make_log(start_time, end_time)
 
         while time.time() < end_time:
-            got_error = False
-            start_send = time.time()
-            try:
-                curl(target, [
-                    "--json",
-                    f"{dumps(self.size)}"
-                ], json=False)
-            except CalledProcessError as e:
-                print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
-                got_error = True
-            end_send = time.time()
-            response_time = end_send - start_send
-            pod_count = kubectl("get", ["deploy", target_deployment], json=True)["spec"]["replicas"]
-            results[start_send] = {"response_time": response_time, "pod_count": pod_count, "error":got_error}
-            log(self.name, response_time, end_send)
-        self.response_data.append(results)
+            for key in self.workload_kubeconfigs:
+                results[key].append(self.measure(key, log))
+        self.save(results)
 
-    def save(self):
+    def measure(self, name:str, log):
+        start_send = time.time()
+        target_port = self.workload_kubeconfigs[name]["api-service"]["spec"]["ports"][0]["nodePort"]
+        try:
+            curl(f"localhost:{target_port}/mm", [
+                "--json",
+                dumps(self.size)
+            ], json=False)
+        except CalledProcessError as e:
+            print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
+        end_send = time.time()
+        response_time = end_send - start_send
+        pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
+        log(self.name, response_time, end_send)
+        return [start_send, response_time, pod_count]
+
+    def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
-        for index, result in enumerate(self.response_data):
-            timestamp = int(time.time())
-            with open(f"results/{self.name}-{datetime.fromtimestamp(timestamp)}-{index}.csv", "w") as file:
+        for name, rows in results:
+            timestamp = datetime.fromtimestamp(time.time())
+            with open(f"results/{self.name}-{name}-{timestamp}.csv", "w") as file:
                 writer = csv.writer(file)
-                writer.writerow(["timestamp", "response"])
-                for timestamp1, data in result.items():
-                    writer.writerow([timestamp1, data["response_time"], data["pod_count"]])
+                writer.writerow(["timestamp", "response", "pods"])
+                writer.writerows(rows)
                 
     def kubernetes_setup(self):
-        print("Setup unsupported")
+        for name, kubeconfigs in self.workload_kubeconfigs.items():
+            for key, kubeconfig in kubeconfigs.items():
+                print(f"Applying workload: {name} - {key}")
+                kubectl_apply(kubeconfig)
+
+    def workload_setup(self):
+        print("Initializing workloads...")
+        for api, generator in self.workload_kubeconfigs:
+            kubectl_apply(api)
+            kubectl_apply(generator)
 
     def cleanup(self):
         print("Cleaning up kubernetes environment...")
-        kubectl("delete", [
-            "hpa",
-            target_deployment
-        ], failable=True)
-        data = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
-        for kubeconfig in data:
+        for kubeconfig in self.kubeconfigs:
             name = kubeconfig["metadata"]["name"]
             kind = kubeconfig["kind"]
             kubectl("delete", [
@@ -110,4 +121,17 @@ class TestCase:
                 name
             ], failable=True)
 
-
+        # Workload Deployments
+        for name, kubeconfigs in self.workload_kubeconfigs.items():
+            for key, kubeconfig in kubeconfigs.items():
+                print(f"Cleaning {name} - {key}")
+                name = kubeconfig["metadata"]["name"]
+                kind = kubeconfig["kind"]
+                kubectl("delete", [
+                    kind,
+                    name
+                ], failable=True)
+                kubectl("delete", [
+                    "hpa",
+                    name
+                ])

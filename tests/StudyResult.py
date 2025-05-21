@@ -1,8 +1,7 @@
 from lib.TestCase import TestCase
 from json import dumps
-from lib.Data import autoscaler_deployment
 from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix
-from lib.Arguments import target_deployment, reinit_db
+from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
 forecaster_port = 8081
@@ -13,10 +12,10 @@ autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
 
 class StudyResult(TestCase):
     def kubernetes_setup(self):
-        autoscaler_kubeconfig = autoscaler_deployment("autoscaler", "root", "password", postgres_port, autoscaler_port, forecaster_port)
+        super().kubernetes_setup()
         late_deployments = []
         print("Applying initial kubeconfigs")
-        for kubeconfig in autoscaler_kubeconfig:
+        for kubeconfig in self.kubeconfigs:
             if kubeconfig["metadata"]["name"] in ["autoscaler", "forecaster"] and kubeconfig["kind"] == "Deployment":
                 late_deployments.append(kubeconfig)
             else:
@@ -61,27 +60,28 @@ class StudyResult(TestCase):
         logged_delay(5)
 
         services = curl(f"localhost:{autoscaler_exposed_port}/services")
-        service = [service for service in services if service["name"] == target_deployment][0]
-        service_id = service["id"]
-        service["autoscalingEnabled"] = True
+        for name in self.workload_kubeconfigs:
+            service = [service for service in services if service["name"] == name][0]
+            service_id = service["id"]
+            service["autoscalingEnabled"] = True
 
-        settings = curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
-        settings["scaleUp"] = int(self.scale_up*100)
-        settings["scaleDown"] = int(self.scale_down*100)
-        settings["minReplicas"] = self.min_replicas
-        settings["maxReplicas"] = self.max_replicas
-        
-        if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}",  [
-            "--json",
-            dumps(service)
-        ], json=False) == "true":
-            print(f"Failed to set service data: {dumps(service)}")
-            exit(1)
-        if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
-            "--json",
-            dumps(settings)
-        ], json=False) == "true":
-            print(f"Failed to set settings data: {dumps(settings)}")
-            exit(1)
+            settings = curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings")
+            settings["scaleUp"] = int(self.scale_up*100)
+            settings["scaleDown"] = int(self.scale_down*100)
+            settings["minReplicas"] = self.min_replicas
+            settings["maxReplicas"] = self.max_replicas
+            
+            if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}",  [
+                "--json",
+                dumps(service)
+            ], json=False) == "true":
+                print(f"Failed to set service data: {dumps(service)}")
+                exit(1)
+            if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
+                "--json",
+                dumps(settings)
+            ], json=False) == "true":
+                print(f"Failed to set settings data: {dumps(settings)}")
+                exit(1)
         print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)

@@ -31,7 +31,7 @@ for test in tests:
         print(f"starting run #{runid}")
         print(f"test duration: {test.period} seconds")
         test.run()
+    # cleanup again to clean up local dependencies
+    test.cleanup()
     print(f"{test}\nFinshed, saving results...")
     print("-"*get_terminal_size()[0])
-
-    test.save()
