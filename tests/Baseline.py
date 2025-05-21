@@ -18,6 +18,6 @@ class Baseline(TestCase):
                 "--patch",
                 f"{dumps(data)}"
             ])
-            while kubectl("get", ["deployment", name], json=True)["spec"]["replicas"] != 1:
+            while kubectl("get", ["deployment", f"{name}-api"], json=True)["spec"]["replicas"] != 1:
                 pass
         
