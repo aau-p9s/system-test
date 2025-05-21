@@ -36,7 +36,6 @@ class TestCase:
     size:dict[str, int]
     period:int
     delay:int
-    tests:int
     scale_up:float
     scale_down:float
     min_replicas:int

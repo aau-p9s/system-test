@@ -30,10 +30,8 @@ tests:list[TestCase] = [
 for test in tests:
     test.cleanup()
     test.kubernetes_setup()
-    for runid in range(test.tests):
-        print(f"starting run #{runid}")
-        print(f"test duration: {test.period} seconds")
-        test.run()
+    print(f"test duration: {test.period} seconds")
+    test.run()
     # cleanup again to clean up local dependencies
     test.cleanup()
     print(f"{test}\nFinshed, saving results...")
