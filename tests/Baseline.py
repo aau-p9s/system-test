@@ -14,7 +14,7 @@ class Baseline(TestCase):
             
             kubectl("patch", [
                 "deployment",
-                name,
+                f"{name}-api",
                 "--patch",
                 f"{dumps(data)}"
             ])
