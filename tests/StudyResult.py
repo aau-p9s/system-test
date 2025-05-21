@@ -2,7 +2,7 @@ from lib.TestCase import TestCase
 from json import dumps
 from lib.Data import autoscaler_deployment
 from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix
-from lib.Arguments import target_deployment
+from lib.Arguments import target_deployment, reinit_db
 
 autoscaler_port = 8080
 forecaster_port = 8081
@@ -35,8 +35,9 @@ class StudyResult(TestCase):
         clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
         copy_directory("/tmp/autoscaler/Autoscaler.Api/BaselineModels/", "/tmp/forecaster/Assets/models")
         print("running nix init scripts")
-        nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
-        nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
+        if reinit_db:
+            nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
+            nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
 
         print("Applying late kubeconfigs")
         # Do the late deployments
@@ -82,5 +83,5 @@ class StudyResult(TestCase):
         ], json=False) == "true":
             print(f"Failed to set settings data: {dumps(settings)}")
             exit(1)
-        print("Rediscovering services")
+        print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
