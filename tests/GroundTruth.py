@@ -9,7 +9,7 @@ class GroundTruth(TestCase):
         for name in self.workload_kubeconfigs:
             kubectl("autoscale", [
                 "deployment",
-                name,
+                f"{name}-api",
                 "--cpu-percent=50",
                 "--min=1",
                 "--max=10"
@@ -19,7 +19,7 @@ class GroundTruth(TestCase):
             patch_data = hpa_patch(self.min_replicas, self.max_replicas, self.scale_down, self.scale_up)
             kubectl("patch", [
                 "hpa",
-                name,
+                f"{name}-api",
                 "--patch",
                 f"{dumps(patch_data)}"
             ])
