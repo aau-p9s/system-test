@@ -93,7 +93,7 @@ class TestCase:
 
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
-        for name, rows in results:
+        for name, rows in results.items():
             timestamp = datetime.fromtimestamp(time.time())
             with open(f"results/{self.name}-{name}-{timestamp}.csv", "w") as file:
                 writer = csv.writer(file)
