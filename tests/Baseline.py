@@ -3,9 +3,6 @@ from lib.TestCase import TestCase
 from lib.Utils import kubectl
 
 class Baseline(TestCase):
-    def __init__(self, name, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, tests:int = 1):
-        super().__init__(name, size, period, delay, tests)
-
     def kubernetes_setup(self):
         super().kubernetes_setup()
         data = {
