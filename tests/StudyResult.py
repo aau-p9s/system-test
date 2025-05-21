@@ -70,13 +70,17 @@ class StudyResult(TestCase):
         settings["minReplicas"] = self.min_replicas
         settings["maxReplicas"] = self.max_replicas
         
-        curl(f"localhost:{autoscaler_exposed_port}/services",  [
+        if not curl(f"localhost:{autoscaler_exposed_port}/services",  [
             "--json",
             dumps(service)
-        ], json=False)
-        curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
+        ], json=False) == "true":
+            print(f"Failed to set service data: {dumps(service)}")
+            exit(1)
+        if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
             "--json",
             dumps(settings)
-        ], json=False)
+        ], json=False) == "true":
+            print(f"Failed to set settings data: {dumps(settings)}")
+            exit(1)
         print("Rediscovering services")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)

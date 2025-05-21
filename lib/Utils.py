@@ -8,6 +8,8 @@ from lib.Arguments import verbose
 output = None if verbose else DEVNULL
 
 def curl(url:str, params:list[str] = [], json=True) -> Any:
+    if verbose:
+        print("sending curl request: {url}[{' '.join(params)}]")
     raw_response = check_output([
         "curl",
         url,
@@ -16,6 +18,7 @@ def curl(url:str, params:list[str] = [], json=True) -> Any:
         print(f"curl raw response: {raw_response}")
     if json:
         return loads(raw_response)
+    return raw_response
 
 def clone_repository(url:str, target_directory:str, branch:str = "main"):
     if target_directory in ["/", ".", ""]:
