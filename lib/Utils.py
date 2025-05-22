@@ -74,6 +74,7 @@ def kubectl(command, args, json=False, failable=False) -> Any:
         print(f"kubernetes raw response: {raw_response}")
     if json:
         return loads(raw_response)
+    return raw_response
 
 def kubectl_apply(data:Any):
     try:
