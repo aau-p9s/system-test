@@ -114,7 +114,7 @@ def psql(sql: str):
         check_call([
             "psql",
             "-h", postgres_address,
-            "-p", postgres_port,
+            "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database,
             "-c", sql
