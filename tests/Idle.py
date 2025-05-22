@@ -16,6 +16,6 @@ class Idle(TestCase):
         end_time = start_time + self.period
         
         while time() < end_time:
-            results["main"].append(["", "", "", measure_power_usage()])
+            results["main"].append(["", "", "", measure_power_usage()[1]])
 
         self.save(results)

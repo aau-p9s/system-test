@@ -90,7 +90,7 @@ class TestCase:
         response_time = end_send - start_send
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
         log(self.name, response_time, end_send)
-        return [start_send, response_time, pod_count, measure_power_usage()]
+        return [start_send, response_time, pod_count, measure_power_usage()[1]]
 
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
