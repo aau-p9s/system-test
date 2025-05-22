@@ -117,8 +117,13 @@ class TestCase:
             print(f"Waiting for workload deployment: {name}")
             kubectl("wait", [
                 "--for=condition=Available",
-                f"deployments/{name}"
+                f"deployments/{name}-api"
             ])
+            kubectl("wait", [
+                "--for=condition=Available",
+                f"deployments/{name}-generator"
+            ])
+            
 
     def cleanup(self):
         print("Cleaning up kubernetes environment...")
