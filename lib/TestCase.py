@@ -62,7 +62,7 @@ class TestCase:
             for i in range(len(workload_configs))
         }
         
-        self.csv_name = lambda test_name: f"{name}-{test_name}-csv"
+        self.csv_name = lambda test_name: f"results/{name}-{test_name}.csv"
 
         print(f"Initialized {self}")
 
