@@ -1,0 +1,21 @@
+
+from time import time
+from lib.Metrics import measure_power_usage
+from lib.TestCase import TestCase
+
+
+class Idle(TestCase):
+    def kubernetes_setup(self):
+        pass
+
+    def run(self):
+        results = { "main": [] }
+
+
+        start_time = time()
+        end_time = start_time + self.period
+        
+        while time() < end_time:
+            results["main"].append(["", "", "", measure_power_usage()])
+
+        self.save(results)

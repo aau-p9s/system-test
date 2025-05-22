@@ -19,6 +19,7 @@ size = {
 
 tests: list[TestCase] = (
     make_test_triple("Quick-10x10", size=size, period=60) +
+    make_test_triple("Quick-idle-10x10", size=size, period=60, idle=True) +
     make_test_triple("Quick-3-10x10", size=size, period=60, workload_count=3) +
     make_test_triple("Short-10x10", size=size, period=60*60*6) +
     make_test_triple("Short-3-10x10", size=size, period=60*60*6, workload_count=3) +
