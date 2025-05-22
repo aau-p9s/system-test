@@ -38,7 +38,7 @@ class StudyResult(TestCase):
             nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
             nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
         else:
-            psql("delete from historicaldata")
+            psql("delete from historicdata")
             psql("delete from forecasts")
 
         print("Applying late kubeconfigs")
