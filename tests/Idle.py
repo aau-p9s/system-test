@@ -5,6 +5,10 @@ from lib.TestCase import TestCase
 
 
 class Idle(TestCase):
+    def __init__(self, name: str, *kwargs):
+        super().__init__(name, *kwargs)
+        self.csv_name = lambda _: f"{name}-main.csv"
+
     def kubernetes_setup(self):
         pass
 
