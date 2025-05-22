@@ -19,7 +19,7 @@ def make_log(start_time, end_time):
         percentage = int(((current_time - start_time) / duration) * 100)
         match log_frequency:
             case -1:
-                print(f"{name}:\t\t|\tProgress: {percentage}%\t\t|\tResponse time: {response_time}")
+                print(f"{name}:\t\t|\tProgress: {percentage}%\t\t|\tResponse time: {response_time:.5f}\t\t|\tMean Power Usage: {power:.5f}")
             case _:
                 rounded = (percentage // log_frequency) * log_frequency
                 save_data["response_times"].append(response_time)
@@ -30,7 +30,7 @@ def make_log(start_time, end_time):
                     save_data['last'] = rounded
                     mean = sum(save_data["response_times"]) / len(save_data["response_times"])
                     mean_power = sum(save_data["power"]) / len(save_data["power"])
-                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tMean Response time: {round(mean, 5)}\t\t|\tMean Power Usage: {round(mean_power, 5)}")
+                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tMean Response time: {mean:.5f}\t\t|\tMean Power Usage: {mean_power:.5f}")
                     save_data["response_times"] = []
                     save_data["power"] = []
 
