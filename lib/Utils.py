@@ -112,7 +112,7 @@ def nix(command, flake, working_directory=""):
 def psql(sql: str):
     try:
         check_call([
-            "psql",
+            "/usr/bin/psql",
             "-h", postgres_address,
             "-p", str(postgres_port),
             "-U", postgres_user,
@@ -121,6 +121,7 @@ def psql(sql: str):
         ], env={"PGPASSWORD": postgres_password})
     except CalledProcessError as e:
         print(f"psql call failed {e.returncode}")
+        exit(1)
 
 
 def logged_delay(delay):
