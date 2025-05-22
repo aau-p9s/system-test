@@ -114,19 +114,11 @@ class TestCase:
                 print(f"Applying workload: {name} - {key}")
                 kubectl_apply(kubeconfig)
 
-    def workload_setup(self):
-        print("Initializing workloads...")
-        for name, kubeconfigs in self.workload_kubeconfigs.items():
-            for config_name, kubeconfig in kubeconfigs.items():
-                kubectl_apply(kubeconfig)
-                kubectl_apply(kubeconfig)
-
             print(f"Waiting for workload deployment: {name}")
             kubectl("wait", [
                 "--for=condition=Available",
                 f"deployments/{name}"
             ])
-
 
     def cleanup(self):
         print("Cleaning up kubernetes environment...")
