@@ -1,6 +1,6 @@
 from lib.TestCase import TestCase
 from json import dumps
-from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix
+from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, psql
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
@@ -37,6 +37,9 @@ class StudyResult(TestCase):
         if reinit_db:
             nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
             nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
+        else:
+            psql("delete from historical")
+            psql("delete from forecasts")
 
         print("Applying late kubeconfigs")
         # Do the late deployments

@@ -3,7 +3,7 @@ from os import chdir, getcwd, path, system
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
 from time import sleep
 from typing import Any
-from lib.Arguments import verbose
+from lib.Arguments import verbose, postgres_address, postgres_port, postgres_database, postgres_user, postgres_password
 
 output = None if verbose else DEVNULL
 
@@ -108,6 +108,19 @@ def nix(command, flake, working_directory=""):
         exit(1)
     if working_directory:
         chdir(original_directory)
+
+def psql(sql: str):
+    try:
+        check_call([
+            "psql",
+            "-h", postgres_address,
+            "-p", postgres_port,
+            "-U", postgres_user,
+            postgres_database,
+            "-c", sql
+        ], env={"PGPASSWORD": postgres_password})
+    except CalledProcessError as e:
+        print(f"psql call failed {e.returncode}")
 
 
 def logged_delay(delay):
