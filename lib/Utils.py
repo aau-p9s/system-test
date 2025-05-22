@@ -112,8 +112,7 @@ def nix(command, flake, working_directory=""):
 def psql(sql: str):
     try:
         check_call([
-            "/usr/bin/env",
-            "psql",
+            "/usr/bin/psql",
             "-h", postgres_address,
             "-p", str(postgres_port),
             "-U", postgres_user,
