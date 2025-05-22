@@ -30,16 +30,17 @@ class StudyResult(TestCase):
         logged_delay(10)
 
         # reinit and deploy db
-        clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
-        clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
-        copy_directory("/tmp/autoscaler/Autoscaler.Api/BaselineModels/", "/tmp/forecaster/Assets/models")
-        print("running nix init scripts")
         if reinit_db:
+            clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
+            clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
+            copy_directory("/tmp/autoscaler/Autoscaler.Api/BaselineModels/", "/tmp/forecaster/Assets/models")
+            print("running nix init scripts")
             nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
             nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
         else:
             psql("delete from historicdata")
             psql("delete from forecasts")
+            psql("update services set autoscalingEnabled = false")
 
         print("Applying late kubeconfigs")
         # Do the late deployments
