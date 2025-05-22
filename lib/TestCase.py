@@ -29,7 +29,7 @@ def make_log(start_time, end_time):
                 if rounded > save_data['last']:
                     save_data['last'] = rounded
                     mean = sum(save_data["response_times"]) / len(save_data["response_times"])
-                    mean_power = sum(save_data["power"] / len(save_data["power"]))
+                    mean_power = sum(save_data["power"]) / len(save_data["power"])
                     print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tMean Response time: {mean}\t\t|\tMean Power Usage: {mean_power}")
                     save_data["response_times"] = []
                     save_data["power"] = []
