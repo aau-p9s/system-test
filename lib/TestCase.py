@@ -70,9 +70,6 @@ class TestCase:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
-        if max(os.path.exists(self.csv_name(name)) for name in self.workload_kubeconfigs):
-            print("Skipping, test already done")
-            return
 
         results:dict[str, list[list[Any]]] = { name: [] for name in self.workload_kubeconfigs }
         logged_delay(5)
@@ -147,3 +144,6 @@ class TestCase:
                     "hpa",
                     name
                 ], failable=True)
+    
+    def has_run(self) -> bool:
+        return max(os.path.exists(self.csv_name(name)) for name in self.workload_kubeconfigs)

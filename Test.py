@@ -33,6 +33,8 @@ tests: list[TestCase] = [test for triple in [
 ] for test in triple]
 
 for test in tests:
+    if test.has_run():
+        continue
     test.cleanup()
     test.kubernetes_setup()
     print(headline(test.name))
