@@ -12,9 +12,9 @@ from lib.Utils import curl, kubectl, kubectl_apply, logged_delay
 
 def make_log(start_time, end_time):
     duration = end_time - start_time
-    save_data = {'last': -1, "response_times": []}
+    save_data = {'last': -1, "response_times": [], "power": []}
 
-    def log_progress(name, response_time, current_time):
+    def log_progress(name, response_time, power, current_time):
         percentage = int(((current_time - start_time) / duration) * 100)
         match log_frequency:
             case -1:
@@ -22,13 +22,16 @@ def make_log(start_time, end_time):
             case _:
                 rounded = (percentage // log_frequency) * log_frequency
                 save_data["response_times"].append(response_time)
+                save_data["power"].append(power)
                 if current_time < start_time or current_time > end_time:
                     return
                 if rounded > save_data['last']:
                     save_data['last'] = rounded
                     mean = sum(save_data["response_times"]) / len(save_data["response_times"])
-                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tMean Response time: {mean}")
+                    mean_power = sum(save_data["power"] / len(save_data["power"]))
+                    print(f"{name}:\t\t|\tProgress: {rounded}%\t\t|\tMean Response time: {mean}\t\t|\tMean Power Usage: {mean_power}")
                     save_data["response_times"] = []
+                    save_data["power"] = []
 
     return log_progress
             
@@ -89,8 +92,9 @@ class TestCase:
         end_send = time.time()
         response_time = end_send - start_send
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
-        log(self.name, response_time, end_send)
-        return [start_send, response_time, pod_count, measure_power_usage()[1]]
+        power = measure_power_usage()[1]
+        log(self.name, response_time, power, end_send)
+        return [start_send, response_time, pod_count, power]
 
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
