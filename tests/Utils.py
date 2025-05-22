@@ -9,4 +9,4 @@ def make_test_triple(name: str, size: dict[str, int] = {"x": 10, "y": 10}, perio
         Baseline(f"Baseline-{name}", size, period, delay, scale_up, scale_down, min_replicas, max_replicas, workload_count),
         GroundTruth(f"GroundTruth-{name}", size, period, delay, scale_up, scale_down, min_replicas, max_replicas, workload_count),
         StudyResult(f"StudyResult-{name}", size, period, delay, scale_up, scale_down, min_replicas, max_replicas, workload_count)
-    ] + [Idle(f"Idle-{name}", period=period)] if idle else []
+    ] + ([Idle(f"Idle-{name}", period=period)] if idle else [])
