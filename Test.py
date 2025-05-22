@@ -22,7 +22,7 @@ workload_configs = [
     (25, 1000)
 ]
 
-tests: list[TestCase] = list(filter(lambda test: test.has_run(), [test for triple in [
+tests: list[TestCase] = list(filter(lambda test: not test.has_run(), [test for triple in [
     make_test_triple("Quick-10x10", size=size, period=60),
     make_test_triple("Quick-idle-10x10", size=size, period=60, idle=True),
     make_test_triple("Quick-3-10x10", size=size, period=60, workload_configs=workload_configs),
