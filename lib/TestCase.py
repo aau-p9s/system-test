@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any
 from lib.Data import autoscaler_deployment, workload_deployment_configs
 from lib.Arguments import log_frequency
+from lib.Metrics import measure_power_usage
 from lib.Utils import curl, kubectl, kubectl_apply, logged_delay
 
 def make_log(start_time, end_time):
@@ -89,7 +90,7 @@ class TestCase:
         response_time = end_send - start_send
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
         log(self.name, response_time, end_send)
-        return [start_send, response_time, pod_count]
+        return [start_send, response_time, pod_count, measure_power_usage()]
 
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
@@ -97,7 +98,7 @@ class TestCase:
             timestamp = datetime.fromtimestamp(time.time())
             with open(f"results/{self.name}-{name}-{timestamp}.csv", "w") as file:
                 writer = csv.writer(file)
-                writer.writerow(["timestamp", "response", "pods"])
+                writer.writerow(["timestamp", "response", "pods", "watt"])
                 writer.writerows(rows)
                 
     def kubernetes_setup(self):
