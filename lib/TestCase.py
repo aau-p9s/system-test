@@ -1,4 +1,5 @@
 from subprocess import CalledProcessError
+import sys
 import time
 import os
 import csv
@@ -45,7 +46,7 @@ class TestCase:
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, name, size:dict[str, int] = {"x":2000, "y":2000}, period:int = 86400, delay:int = 25, scale_up:float = .5, scale_down:float = .2, min_replicas:int = 1, max_replicas:int = 10, workload_count:int = 1):
+    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, delay: int = 25, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int]] = [(50, 2000)]):
         self.size = size
         self.period = period
         self.delay = delay
@@ -57,9 +58,11 @@ class TestCase:
         self.kubeconfigs = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
         
         self.workload_kubeconfigs = {
-            f"workload-{i}": workload_deployment_configs(f"workload-{i}", 8090 + (i*2), size) 
-            for i in range(workload_count)
+            f"workload-{i}": workload_deployment_configs(f"workload-{i}", 8090 + (i*2), size, workload_configs[i][0], workload_configs[i][1]) 
+            for i in range(len(workload_configs))
         }
+        
+        self.csv_name = lambda test_name: f"{name}-{test_name}-csv"
 
         print(f"Initialized {self}")
 
@@ -67,6 +70,10 @@ class TestCase:
         return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
+        if max(os.path.exists(self.csv_name(name)) for name in self.workload_kubeconfigs):
+            print("Skipping, test already done")
+            return
+
         results:dict[str, list[list[Any]]] = { name: [] for name in self.workload_kubeconfigs }
         logged_delay(5)
 
@@ -99,8 +106,7 @@ class TestCase:
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
         for name, rows in results.items():
-            timestamp = datetime.fromtimestamp(time.time())
-            with open(f"results/{self.name}-{name}-{timestamp}.csv", "w") as file:
+            with open(self.csv_name(name), "w") as file:
                 writer = csv.writer(file)
                 writer.writerow(["timestamp", "response", "pods", "watt"])
                 writer.writerows(rows)

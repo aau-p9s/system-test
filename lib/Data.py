@@ -1,7 +1,7 @@
 from lib.Generators import make_container, make_deployment, make_service
 
 
-workload_deployment_configs = lambda name, port, size: {
+workload_deployment_configs = lambda name, port, size, min_requests, max_requests: {
     "api": make_deployment(f"{name}-api", [make_container(
         f"{name}-api",
         "ghcr.io/aau-p9s/workload-api:latest",
@@ -20,7 +20,9 @@ workload_deployment_configs = lambda name, port, size: {
             "GENERATOR_API_PORT": port,
             "GENERATOR_PORT": port+1,
             "GENERATOR_X": size["x"],
-            "GENERATOR_Y": size["y"]
+            "GENERATOR_Y": size["y"],
+            "GENERATOR_MIN": min_requests,
+            "GENERATOR_MAX": max_requests
         }
     )]),
     "api-service": make_service(f"{name}-api", port),

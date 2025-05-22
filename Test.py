@@ -17,14 +17,19 @@ size = {
     "y": 10
 }
 
+workload_configs = [
+    (50, 2000),
+    (25, 1000)
+]
+
 tests: list[TestCase] = [test for triple in [
     make_test_triple("Quick-10x10", size=size, period=60),
     make_test_triple("Quick-idle-10x10", size=size, period=60, idle=True),
-    make_test_triple("Quick-3-10x10", size=size, period=60, workload_count=3),
+    make_test_triple("Quick-3-10x10", size=size, period=60, workload_configs=workload_configs),
     make_test_triple("Short-10x10", size=size, period=60*60*6),
-    make_test_triple("Short-3-10x10", size=size, period=60*60*6, workload_count=3),
+    make_test_triple("Short-3-10x10", size=size, period=60*60*6, workload_configs=workload_configs),
     make_test_triple("10x10", size=size),
-    make_test_triple("3-10x10", size=size, workload_count=3)
+    make_test_triple("3-10x10", size=size, workload_configs=workload_configs)
 ] for test in triple]
 
 for test in tests:
