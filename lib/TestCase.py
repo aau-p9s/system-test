@@ -84,10 +84,11 @@ class TestCase:
         self.save(results)
 
     def measure(self, name:str, log):
+        api_port = self.workload_kubeconfigs[name]["api-service"]["spec"]["ports"][0]["nodePort"]
+        generator_port = self.workload_kubeconfigs[name]["generator-service"]["spec"]["ports"][0]["nodePort"]
         start_send = time.time()
-        target_port = self.workload_kubeconfigs[name]["api-service"]["spec"]["ports"][0]["nodePort"]
         try:
-            curl(f"localhost:{target_port}/mm", [
+            curl(f"localhost:{api_port}/mm", [
                 "--json",
                 dumps(self.size)
             ], json=False)
@@ -95,17 +96,18 @@ class TestCase:
             print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
         end_send = time.time()
         response_time = end_send - start_send
+        request_count = len(curl(f"localhost:{generator_port}/metrics/{int(start_send)}"))
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
         power = measure_power_usage()[1]
         log(self.name, response_time, power, end_send)
-        return [start_send, response_time, pod_count, power]
+        return [start_send, response_time, pod_count, power, request_count]
 
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
         for name, rows in results.items():
             with open(self.csv_name(name), "w") as file:
                 writer = csv.writer(file)
-                writer.writerow(["timestamp", "response", "pods", "watt"])
+                writer.writerow(["timestamp", "response", "pods", "watt", "request_count"])
                 writer.writerows(rows)
                 
     def kubernetes_setup(self):
