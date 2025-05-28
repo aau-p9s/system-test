@@ -24,7 +24,16 @@ workload_deployment_configs = lambda name, port, size, min_requests, max_request
             "GENERATOR_MIN": min_requests,
             "GENERATOR_MAX": max_requests
         }
-    )]),
+    ), volumeMounts=[{
+        "name": "data-volume",
+        "mountPath": "/var/agg_minute.csv",
+        "subPath": "/var/agg_minute.csv",
+    }]], volumes=[{
+        "name": "data-volume",
+        "configMap": {
+            "name": "data-config"
+        }
+    }]),
     "api-service": make_service(f"{name}-api", port),
     "generator-service": make_service(f"{name}-generator", port+1)
 }
