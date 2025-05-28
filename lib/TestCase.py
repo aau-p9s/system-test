@@ -159,7 +159,7 @@ class TestCase:
         kubectl("delete", [
             "configmap",
             "data-config"
-        ])
+        ], failable=True)
     
     def has_run(self) -> bool:
         return max(os.path.exists(self.csv_name(name)) for name in self.workload_kubeconfigs)
