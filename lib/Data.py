@@ -23,12 +23,13 @@ workload_deployment_configs = lambda name, port, size, min_requests, max_request
             "GENERATOR_Y": size["y"],
             "GENERATOR_MIN": min_requests,
             "GENERATOR_MAX": max_requests
-        }
-    ), volumeMounts=[{
-        "name": "data-volume",
-        "mountPath": "/var/agg_minute.csv",
-        "subPath": "/var/agg_minute.csv",
-    }]], volumes=[{
+        },
+        volumeMounts=[{
+            "name": "data-volume",
+            "mountPath": "/var/agg_minute.csv",
+            "subPath": "/var/agg_minute.csv",
+        }]
+    )], volumes=[{
         "name": "data-volume",
         "configMap": {
             "name": "data-config"
