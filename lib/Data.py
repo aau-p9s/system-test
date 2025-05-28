@@ -27,7 +27,7 @@ workload_deployment_configs = lambda name, port, size, min_requests, max_request
         volumeMounts=[{
             "name": "data-volume",
             "mountPath": "/var/agg_minute.csv",
-            "subPath": "/var/agg_minute.csv",
+            "subPath": "agg_minute.csv",
         }]
     )], volumes=[{
         "name": "data-volume",
