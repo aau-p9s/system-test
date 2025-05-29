@@ -33,7 +33,7 @@ class StudyResult(TestCase):
         if reinit_db:
             clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
             clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
-            copy_directory("/tmp/autoscaler/Autoscaler.Api/BaselineModels/", "/tmp/forecaster/Assets/models")
+            copy_directory("/var/models/", "/tmp/forecaster/Assets/models")
             print("running nix init scripts")
             nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
             nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
