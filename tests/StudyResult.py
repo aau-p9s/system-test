@@ -31,7 +31,6 @@ class StudyResult(TestCase):
 
         # reinit and deploy db
         if reinit_db:
-            clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler", "main")
             clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
             copy_directory("/var/models/", "/tmp/forecaster/Assets/models")
             print("running nix init scripts")
