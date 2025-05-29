@@ -111,6 +111,11 @@ class TestCase:
                 writer.writerows(rows)
                 
     def kubernetes_setup(self):
+        kubectl("create", [
+            "configmap",
+            "data-config",
+            "--from-file=/var/agg_minute.csv"
+        ])
         for name, kubeconfigs in self.workload_kubeconfigs.items():
             for key, kubeconfig in kubeconfigs.items():
                 print(f"Applying workload: {name} - {key}")
@@ -151,6 +156,10 @@ class TestCase:
                     "hpa",
                     name
                 ], failable=True)
+        kubectl("delete", [
+            "configmap",
+            "data-config"
+        ], failable=True)
     
     def has_run(self) -> bool:
         return max(os.path.exists(self.csv_name(name)) for name in self.workload_kubeconfigs)
