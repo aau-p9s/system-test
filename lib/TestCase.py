@@ -96,7 +96,7 @@ class TestCase:
             print(f"Curl got error: {e.returncode}[{e.cmd=}, {e.args=}]")
         end_send = time.time()
         response_time = end_send - start_send
-        request_count = len(curl(f"localhost:{generator_port}/api/metrics/{int(start_send)}")["metrics"])
+        request_count = int(curl(f"localhost:{generator_port}/api/metrics", json=False))
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
         power = measure_power_usage()[1]
         log(self.name, response_time, power, end_send)
