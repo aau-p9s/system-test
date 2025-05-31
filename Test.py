@@ -1,6 +1,7 @@
 from os import get_terminal_size
 from lib.TestCase import TestCase
 from tests.Baseline import Baseline
+from tests.GroundTruth import GroundTruth
 from tests.StudyResult import StudyResult
 from tests.Utils import make_test_triple
 import lib.Arguments as args # force entire module to load
@@ -25,7 +26,10 @@ workload_configs = [
 ]
 
 tests = [
-    StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
+    # This first entry is for initialization
+    #StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
+    StudyResult("study-new-10x10", size=size, workload_configs=workload_configs),
+    GroundTruth("GT-new-10x10", workload_configs=workload_configs, size=size)
 ]
 
 for test in tests:
