@@ -4,7 +4,7 @@ from json import dumps
 from uuid import uuid4
 import cloudpickle
 from datetime import datetime
-from lib.Utils import createdb, curl, dropdb, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute
+from lib.Utils import createdb, curl, dropdb, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute, reinit
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
@@ -91,8 +91,7 @@ class StudyResult(TestCase):
 
 
     def reinit(self):
-        postgresql_execute("drop database if exists autoscaler")
-        postgresql_execute("create database autoscaler")
+        reinit()
         clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler")
         for file_name in os.listdir("/tmp/autoscaler/Autoscaler.DbUp/Scripts"):
             if not "SeedData" in file_name:
@@ -113,5 +112,3 @@ class StudyResult(TestCase):
                     str(uuid4()), model_name, binary, datetime.now()
                 ])
 
-
-        nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
