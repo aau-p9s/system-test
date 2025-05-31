@@ -1,11 +1,5 @@
 {
-    inputs.nixpkgs.url = "nixpkgs/nixos-24.11";
-    outputs = inputs: let 
-        system = "x86_64-linux";
-        pkgs = import inputs.nixpkgs { inherit system; };
-    in {
-        devShells.${system}.default = pkgs.mkShell {
-            packages = [(pkgs.python311.withPackages (py: with py; [matplotlib]))];
-        };
-    };
+    # make flake an exact copy of forecaster
+    inputs.forecaster.url = "github:aau-p9s/forecaster/fix/wait-for-finish";
+    outputs = { forecaster, ... }: forecaster;
 }

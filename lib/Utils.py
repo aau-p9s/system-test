@@ -3,9 +3,12 @@ from os import chdir, getcwd, path, system
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
 from time import sleep
 from typing import Any
+from psycopg2 import connect
 from lib.Arguments import verbose, postgres_address, postgres_port, postgres_database, postgres_user, postgres_password
 
 output = None if verbose else DEVNULL
+
+connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, port=postgres_port)
 
 def curl(url:str, params:list[str] = [], json=True) -> Any:
     if verbose:
@@ -109,19 +112,56 @@ def nix(command, flake, working_directory=""):
     if working_directory:
         chdir(original_directory)
 
-def psql(sql: str):
+def psql(sql: str, json = False):
     try:
-        check_call([
+        result = check_output([
             "/usr/bin/psql",
             "-h", postgres_address,
             "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database,
             "-c", sql
-        ], env={"PGPASSWORD": postgres_password})
+        ], env={"PGPASSWORD": postgres_password}, stderr=output)
+
+        return loads(result) if json else result
     except CalledProcessError as e:
         print(f"psql call failed {e.returncode}")
         exit(1)
+
+def dropdb():
+    try:
+        check_call([
+            "/usr/bin/dropdb",
+            "-h", postgres_address,
+            "-p", str(postgres_port),
+            "-U", postgres_user,
+            postgres_database
+        ], stderr=output, stdout=output)
+    except CalledProcessError as e:
+        print(f"dropdb failed {e.returncode}")
+
+def createdb():
+    try:
+        check_call([
+            "/usr/bin/createdb",
+            "-h", postgres_address,
+            "-p", str(postgres_port),
+            "-U", postgres_user,
+            postgres_database
+        ], stderr=output, stdout=output)
+    except CalledProcessError as e:
+        print(f"createdb failed {e.returncode}")
+
+def postgresql_execute(sql, params=[], returns=False):
+    cursor = connection.cursor()
+    if params:
+        cursor.execute(sql, params)
+    else:
+        cursor.execute(sql)
+    connection.commit()
+    if returns:
+        return cursor.fetchall()
+    return []
 
 
 def logged_delay(delay):

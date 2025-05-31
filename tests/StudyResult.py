@@ -1,6 +1,10 @@
+import os
 from lib.TestCase import TestCase
 from json import dumps
-from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, psql
+from uuid import uuid4
+import cloudpickle
+from datetime import datetime
+from lib.Utils import createdb, curl, dropdb, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
@@ -31,15 +35,11 @@ class StudyResult(TestCase):
 
         # reinit and deploy db
         if reinit_db:
-            clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
-            copy_directory("models/", "/tmp/forecaster/Assets/models")
-            print("running nix init scripts")
-            nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
-            nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
+            self.reinit()
         else:
-            psql("delete from historicdata")
-            psql("delete from forecasts")
-            psql("update services set autoscalingEnabled = false")
+            postgresql_execute("delete from historicdata")
+            postgresql_execute("delete from forecasts")
+            postgresql_execute("update services set autoscalingEnabled = false")
 
         print("Applying late kubeconfigs")
         # Do the late deployments
@@ -88,3 +88,27 @@ class StudyResult(TestCase):
                 exit(1)
         print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+
+
+    def reinit(self):
+        dropdb()
+        createdb()
+        clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler")
+        for file_name in os.listdir("/tmp/autoscaler/Autoscaler.DbUp/Scripts"):
+            if not "SeedData" in file_name:
+                with open(f"/tmp/autoscaler/Autoscaler.DbUp/Scripts/{file_name}", "r") as file:
+                    sql = file.read()
+                postgresql_execute(sql)
+
+        for model_name in os.listdir("./models"):
+            with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
+                model = cloudpickle.load(file)
+                binary = cloudpickle.dumps(model)
+                service_ids = [row[0] for row in postgresql_execute("select id from services", returns=True)]
+                for id in service_ids:
+                    postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) values (%s, %s, %s, %s, %s)", [
+                        str(uuid4()), model_name, binary, datetime.now(), id
+                    ])
+
+
+        nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
