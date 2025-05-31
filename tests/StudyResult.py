@@ -114,7 +114,7 @@ class StudyResult(TestCase):
                     print(f"Failed to load {model_name}")
                     continue
                 binary = cloudpickle.dumps(model)
-                postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select %s, %s, %s, %s, id from services", [
-                    str(uuid4()), model_name, binary, datetime.now()
+                postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select gen_random_uuid(), %s, %s, %s, id from services", [
+                    model_name, binary, datetime.now()
                 ])
 
