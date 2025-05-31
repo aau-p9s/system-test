@@ -134,7 +134,7 @@ def psql(sql: str, json = False):
 def reinit():
     global connection
 
-    conn = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password)
+    conn = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database="postgres")
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
     cursor.execute(f"""
