@@ -86,6 +86,11 @@ class StudyResult(TestCase):
             ], json=False) == "true":
                 print(f"Failed to set settings data: {dumps(settings)}")
                 exit(1)
+
+        if reinit_db:
+            print("Inserting models")
+            self.insert_models()
+
         print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
 
@@ -99,6 +104,7 @@ class StudyResult(TestCase):
                     sql = file.read()
                 postgresql_execute(sql)
 
+    def insert_models(self):
         for model_name in os.listdir("./models"):
             with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
                 try:
