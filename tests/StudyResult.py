@@ -104,15 +104,14 @@ class StudyResult(TestCase):
             with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
                 try:
                     model = cloudpickle.load(file)
+                    print(f"Loaded {model_name}")
                 except Exception:
-                    print("Failed to load model")
+                    print(f"Failed to load {model_name}")
                     continue
                 binary = cloudpickle.dumps(model)
-                service_ids = [row[0] for row in postgresql_execute("select id from services", returns=True)]
-                for id in service_ids:
-                    postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) values (%s, %s, %s, %s, %s)", [
-                        str(uuid4()), model_name, binary, datetime.now(), id
-                    ])
+                postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select %s, %s, %s, %s, id from services", [
+                    str(uuid4()), model_name, binary, datetime.now()
+                ])
 
 
         nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
