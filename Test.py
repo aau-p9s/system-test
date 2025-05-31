@@ -1,5 +1,7 @@
 from os import get_terminal_size
 from lib.TestCase import TestCase
+from tests.Baseline import Baseline
+from tests.StudyResult import StudyResult
 from tests.Utils import make_test_triple
 import lib.Arguments as args # force entire module to load
 
@@ -22,15 +24,9 @@ workload_configs = [
     (25, 1000)
 ]
 
-tests: list[TestCase] = list(filter(lambda test: not test.has_run(), [test for triple in [
-    #make_test_triple("Quick-10x10", size=size, period=60),
-    #make_test_triple("Quick-idle-10x10", size=size, period=60, idle=True),
-    #make_test_triple("Quick-2-10x10", size=size, period=60, workload_configs=workload_configs),
-    #make_test_triple("Short-10x10", size=size, period=60*60*6),
-    #make_test_triple("Short-2-10x10", size=size, period=60*60*6, workload_configs=workload_configs),
-    make_test_triple("Long-10x10", size=size),
-    make_test_triple("Long-2-10x10", size=size, workload_configs=workload_configs)
-] for test in triple]))
+tests = [
+    StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
+]
 
 for test in tests:
     test.cleanup()
