@@ -91,8 +91,8 @@ class StudyResult(TestCase):
 
 
     def reinit(self):
-        dropdb()
-        createdb()
+        postgresql_execute("drop database if exists autoscaler")
+        postgresql_execute("create database autoscaler")
         clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler")
         for file_name in os.listdir("/tmp/autoscaler/Autoscaler.DbUp/Scripts"):
             if not "SeedData" in file_name:
