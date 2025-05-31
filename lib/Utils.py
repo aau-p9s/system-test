@@ -8,7 +8,7 @@ from lib.Arguments import verbose, postgres_address, postgres_port, postgres_dat
 
 output = None if verbose else DEVNULL
 
-connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, port=postgres_port)
+connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
 
 def curl(url:str, params:list[str] = [], json=True) -> Any:
     if verbose:
