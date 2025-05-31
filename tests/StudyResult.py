@@ -4,7 +4,7 @@ from json import dumps
 from uuid import uuid4
 import cloudpickle
 from datetime import datetime
-from lib.Utils import createdb, curl, dropdb, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute, reinit
+from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute, reinit
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
