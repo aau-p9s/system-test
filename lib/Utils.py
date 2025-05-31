@@ -136,7 +136,7 @@ def dropdb():
             "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database
-        ], stderr=output, stdout=output)
+        ], env={"PGPASSWORD": postgres_password}, stderr=output, stdout=output)
     except CalledProcessError as e:
         print(f"dropdb failed {e.returncode}")
 
@@ -148,7 +148,7 @@ def createdb():
             "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database
-        ], stderr=output, stdout=output)
+        ], env={"PGPASSWORD": postgres_password}, stderr=output, stdout=output)
     except CalledProcessError as e:
         print(f"createdb failed {e.returncode}")
 

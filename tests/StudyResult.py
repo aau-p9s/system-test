@@ -102,7 +102,11 @@ class StudyResult(TestCase):
 
         for model_name in os.listdir("./models"):
             with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
-                model = cloudpickle.load(file)
+                try:
+                    model = cloudpickle.load(file)
+                except Exception:
+                    print("Failed to load model")
+                    continue
                 binary = cloudpickle.dumps(model)
                 service_ids = [row[0] for row in postgresql_execute("select id from services", returns=True)]
                 for id in service_ids:
