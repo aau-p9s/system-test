@@ -1,11 +1,15 @@
 {
-    inputs.nixpkgs.url = "nixpkgs/nixos-24.11";
-    outputs = inputs: let 
+    # make flake an exact copy of forecaster and extend it with `//`
+    inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
+    inputs.forecaster.url = "github:aau-p9s/forecaster/fix/wait-for-finish";
+    inputs.forecaster.inputs.nixpkgs.follows = "nixpkgs";
+    outputs = { forecaster, nixpkgs, ... }: forecaster // (let
         system = "x86_64-linux";
-        pkgs = import inputs.nixpkgs { inherit system; };
+        pkgs = import nixpkgs { inherit system; };
     in {
-        devShells.${system}.default = pkgs.mkShell {
-            packages = [(pkgs.python311.withPackages (py: with py; [matplotlib]))];
-        };
-    };
+        packages.${system}.test = pkgs.writeScriptBin "test" ''
+            #!${pkgs.bash}/bin/bash
+            ${forecaster.packages.${system}.env.interpreter} Test.py $@
+        '';
+    });
 }

@@ -3,9 +3,14 @@ from os import chdir, getcwd, path, system
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
 from time import sleep
 from typing import Any
+from psycopg2 import connect
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
 from lib.Arguments import verbose, postgres_address, postgres_port, postgres_database, postgres_user, postgres_password
 
 output = None if verbose else DEVNULL
+
+connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
 
 def curl(url:str, params:list[str] = [], json=True) -> Any:
     if verbose:
@@ -109,19 +114,54 @@ def nix(command, flake, working_directory=""):
     if working_directory:
         chdir(original_directory)
 
-def psql(sql: str):
+def psql(sql: str, json = False):
     try:
-        check_call([
+        result = check_output([
             "/usr/bin/psql",
             "-h", postgres_address,
             "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database,
             "-c", sql
-        ], env={"PGPASSWORD": postgres_password})
+        ], env={"PGPASSWORD": postgres_password}, stderr=output)
+
+        return loads(result) if json else result
     except CalledProcessError as e:
         print(f"psql call failed {e.returncode}")
         exit(1)
+
+# use seperate of postgres instances and reinit connection
+def reinit():
+    global connection
+
+    conn = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database="postgres")
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = conn.cursor()
+    cursor.execute(f"""
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = %s AND pid <> pg_backend_pid();
+    """, [postgres_database])
+    cursor.execute(f"DROP DATABASE IF EXISTS {postgres_database};")
+    cursor.execute(f"CREATE DATABASE {postgres_database};")
+
+    cursor.close()
+    conn.close()
+
+    # reinit connection
+    connection = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database=postgres_database)
+
+
+def postgresql_execute(sql, params=[], returns=False):
+    cursor = connection.cursor()
+    if params:
+        cursor.execute(sql, params)
+    else:
+        cursor.execute(sql)
+    connection.commit()
+    if returns:
+        return cursor.fetchall()
+    return []
 
 
 def logged_delay(delay):

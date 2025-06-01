@@ -1,6 +1,10 @@
+import os
 from lib.TestCase import TestCase
 from json import dumps
-from lib.Utils import copy_directory, curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, psql
+from uuid import uuid4
+import cloudpickle
+from datetime import datetime
+from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute, reinit
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
@@ -31,15 +35,11 @@ class StudyResult(TestCase):
 
         # reinit and deploy db
         if reinit_db:
-            clone_repository("https://github.com/aau-p9s/forecaster", "/tmp/forecaster", "feat/model_deployment_scripts")
-            copy_directory("models/", "/tmp/forecaster/Assets/models")
-            print("running nix init scripts")
-            nix("run", "path:/tmp/forecaster#reinit", working_directory="/tmp/forecaster")
-            nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
+            self.reinit()
         else:
-            psql("delete from historicdata")
-            psql("delete from forecasts")
-            psql("update services set autoscalingEnabled = false")
+            postgresql_execute("delete from historicdata")
+            postgresql_execute("delete from forecasts")
+            postgresql_execute("update services set autoscalingEnabled = false")
 
         print("Applying late kubeconfigs")
         # Do the late deployments
@@ -86,5 +86,35 @@ class StudyResult(TestCase):
             ], json=False) == "true":
                 print(f"Failed to set settings data: {dumps(settings)}")
                 exit(1)
+
+        if reinit_db:
+            print("Inserting models")
+            self.insert_models()
+
         print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+
+
+    def reinit(self):
+        reinit()
+        clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler")
+        for file_name in os.listdir("/tmp/autoscaler/Autoscaler.DbUp/Scripts"):
+            if not "SeedData" in file_name:
+                with open(f"/tmp/autoscaler/Autoscaler.DbUp/Scripts/{file_name}", "r") as file:
+                    sql = file.read()
+                postgresql_execute(sql)
+
+    def insert_models(self):
+        for model_name in os.listdir("./models"):
+            with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
+                try:
+                    model = cloudpickle.load(file)
+                    print(f"Loaded {model_name}")
+                except Exception:
+                    print(f"Failed to load {model_name}")
+                    continue
+                binary = cloudpickle.dumps(model)
+                postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select gen_random_uuid(), %s, %s, %s, id from services", [
+                    model_name, binary, datetime.now()
+                ])
+
