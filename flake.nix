@@ -1,5 +1,5 @@
 {
-    # make flake an exact copy of forecaster
+    # make flake an exact copy of forecaster and extend it with `//`
     inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
     inputs.forecaster.url = "github:aau-p9s/forecaster/fix/wait-for-finish";
     inputs.forecaster.inputs.nixpkgs.follows = "nixpkgs";
