@@ -3,14 +3,16 @@
     "forecaster": {
       "inputs": {
         "ml-pkgs": "ml-pkgs",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
-        "lastModified": 1748679620,
-        "narHash": "sha256-bwzscYOPqAFKaF8zIBOzYROaZdvhIrDSk2ZZe7t3rf0=",
+        "lastModified": 1748737958,
+        "narHash": "sha256-mk0HF9fY9y7ZFiL38kWwJevRygZDCMmdzc9RR0ntpLM=",
         "owner": "aau-p9s",
         "repo": "forecaster",
-        "rev": "bca4408e988451a72d3b1f4bda207a1276fd575a",
+        "rev": "038a5a2c2520286767f8984cc29385bbdcb54d6c",
         "type": "github"
       },
       "original": {
@@ -60,7 +62,8 @@
     },
     "root": {
       "inputs": {
-        "forecaster": "forecaster"
+        "forecaster": "forecaster",
+        "nixpkgs": "nixpkgs"
       }
     },
     "utils": {
