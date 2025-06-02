@@ -21,8 +21,8 @@ size = {
 }
 
 workload_configs = [
-    (50, 2000),
-    (25, 1000)
+    (50, 2000, "mapped"),
+    (50, 2000, "sinusodal")
 ]
 
 tests = [
