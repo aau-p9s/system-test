@@ -4,7 +4,7 @@ from json import dumps
 from uuid import uuid4
 import cloudpickle
 from datetime import datetime
-from lib.Utils import createdb, curl, dropdb, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute
+from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute, reinit
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
@@ -86,13 +86,17 @@ class StudyResult(TestCase):
             ], json=False) == "true":
                 print(f"Failed to set settings data: {dumps(settings)}")
                 exit(1)
+
+        if reinit_db:
+            print("Inserting models")
+            self.insert_models()
+
         print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
 
 
     def reinit(self):
-        dropdb()
-        createdb()
+        reinit()
         clone_repository("https://github.com/aau-p9s/autoscaler", "/tmp/autoscaler")
         for file_name in os.listdir("/tmp/autoscaler/Autoscaler.DbUp/Scripts"):
             if not "SeedData" in file_name:
@@ -100,15 +104,16 @@ class StudyResult(TestCase):
                     sql = file.read()
                 postgresql_execute(sql)
 
+    def insert_models(self):
         for model_name in os.listdir("./models"):
             with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
-                model = cloudpickle.load(file)
+                try:
+                    model = cloudpickle.load(file)
+                    print(f"Loaded {model_name}")
+                except Exception:
+                    print(f"Failed to load {model_name}")
+                    continue
                 binary = cloudpickle.dumps(model)
-                service_ids = [row[0] for row in postgresql_execute("select id from services", returns=True)]
-                for id in service_ids:
-                    postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) values (%s, %s, %s, %s, %s)", [
-                        str(uuid4()), model_name, binary, datetime.now(), id
-                    ])
-
-
-        nix("run", "path:/tmp/forecaster#deploy", working_directory="/tmp/forecaster")
+                postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select gen_random_uuid(), %s, %s, %s, id from services", [
+                    model_name, binary, datetime.now()
+                ])

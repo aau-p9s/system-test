@@ -1,2 +1,2 @@
 psycopg2_binary
-darts=0.32.0
+darts==0.32.0

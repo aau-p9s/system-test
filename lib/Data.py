@@ -29,8 +29,8 @@ workload_deployment_configs = lambda name, port, size, min_requests, max_request
             "mountPath": "/var/agg_minute.csv",
             "subPath": "agg_minute.csv",
         }],
-        mem_req = "200Mi",
-        mem_lim="400Mi"
+        mem_req="1000Mi",
+        mem_lim="2000Mi"
     )], volumes=[{
         "name": "data-volume",
         "configMap": {

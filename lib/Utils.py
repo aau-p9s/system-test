@@ -4,11 +4,12 @@ from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, che
 from time import sleep
 from typing import Any
 from psycopg2 import connect
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from lib.Arguments import verbose, postgres_address, postgres_port, postgres_database, postgres_user, postgres_password
 
 output = None if verbose else DEVNULL
 
-connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, port=postgres_port)
+connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
 
 def curl(url:str, params:list[str] = [], json=True) -> Any:
     if verbose:
@@ -128,29 +129,26 @@ def psql(sql: str, json = False):
         print(f"psql call failed {e.returncode}")
         exit(1)
 
-def dropdb():
-    try:
-        check_call([
-            "/usr/bin/dropdb",
-            "-h", postgres_address,
-            "-p", str(postgres_port),
-            "-U", postgres_user,
-            postgres_database
-        ], stderr=output, stdout=output)
-    except CalledProcessError as e:
-        print(f"dropdb failed {e.returncode}")
+# use seperate of postgres instances and reinit connection
+def reinit():
+    global connection
 
-def createdb():
-    try:
-        check_call([
-            "/usr/bin/createdb",
-            "-h", postgres_address,
-            "-p", str(postgres_port),
-            "-U", postgres_user,
-            postgres_database
-        ], stderr=output, stdout=output)
-    except CalledProcessError as e:
-        print(f"createdb failed {e.returncode}")
+    conn = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database="postgres")
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = conn.cursor()
+    cursor.execute(f"""
+        SELECT pg_terminate_backend(pid)
+        FROM pg_stat_activity
+        WHERE datname = %s AND pid <> pg_backend_pid();
+    """, [postgres_database])
+    cursor.execute(f"DROP DATABASE IF EXISTS {postgres_database};")
+    cursor.execute(f"CREATE DATABASE {postgres_database};")
+
+    cursor.close()
+    conn.close()
+
+    # reinit connection
+    connection = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database=postgres_database)
 
 def postgresql_execute(sql, params=[], returns=False):
     cursor = connection.cursor()
