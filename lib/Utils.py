@@ -5,7 +5,6 @@ from time import sleep
 from typing import Any
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
 from lib.Arguments import verbose, postgres_address, postgres_port, postgres_database, postgres_user, postgres_password
 
 output = None if verbose else DEVNULL
@@ -150,7 +149,6 @@ def reinit():
 
     # reinit connection
     connection = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database=postgres_database)
-
 
 def postgresql_execute(sql, params=[], returns=False):
     cursor = connection.cursor()

@@ -117,4 +117,3 @@ class StudyResult(TestCase):
                 postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select gen_random_uuid(), %s, %s, %s, id from services", [
                     model_name, binary, datetime.now()
                 ])
-

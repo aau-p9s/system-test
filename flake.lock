@@ -8,16 +8,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1748737958,
+        "lastModified": 1748778430,
         "narHash": "sha256-mk0HF9fY9y7ZFiL38kWwJevRygZDCMmdzc9RR0ntpLM=",
         "owner": "aau-p9s",
         "repo": "forecaster",
-        "rev": "038a5a2c2520286767f8984cc29385bbdcb54d6c",
+        "rev": "1cc94044cf732c5d3d65e7487595f38aa205104a",
         "type": "github"
       },
       "original": {
         "owner": "aau-p9s",
-        "ref": "fix/wait-for-finish",
         "repo": "forecaster",
         "type": "github"
       }

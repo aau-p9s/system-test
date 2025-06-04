@@ -46,7 +46,7 @@ class TestCase:
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, delay: int = 25, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int]] = [(50, 2000)]):
+    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, delay: int = 25, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int, str]] = [(50, 2000, "mapped")]):
         self.size = size
         self.period = period
         self.delay = delay
@@ -58,8 +58,8 @@ class TestCase:
         self.kubeconfigs = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
         
         self.workload_kubeconfigs = {
-            f"workload-{i}": workload_deployment_configs(f"workload-{i}", 8090 + (i*2), size, workload_configs[i][0], workload_configs[i][1]) 
-            for i in range(len(workload_configs))
+            f"workload-{i}": workload_deployment_configs(f"workload-{i}", 8090 + (i*2), size, config[0], config[1], config[2]) 
+            for i, config in enumerate(workload_configs)
         }
         
         self.csv_name = lambda test_name: f"results/{name}-{test_name}.csv"
