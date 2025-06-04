@@ -57,7 +57,7 @@ class StudyResult(TestCase):
         print("Discovering services")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
         # let shit run
-        logged_delay(5)
+        logged_delay(120)
 
         services = curl(f"localhost:{autoscaler_exposed_port}/services")
         for name in self.workload_kubeconfigs:
