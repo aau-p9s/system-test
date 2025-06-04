@@ -1,8 +1,6 @@
 import os
 from lib.TestCase import TestCase
 from json import dumps
-import cloudpickle
-from datetime import datetime
 from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, postgresql_execute, reinit
 from lib.Arguments import reinit_db
 
