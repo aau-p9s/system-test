@@ -154,7 +154,9 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
             "containerPort": forecaster_port
         }],
         mem_req="1000Mi",
-        mem_lim="2000Mi"
+        mem_lim="2000Mi",
+        cpu_req=None,
+        cpu_lim=None
     )]),
     make_service("forecaster", forecaster_port),
 ]
