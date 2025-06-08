@@ -21,8 +21,8 @@ size = {
 }
 
 workload_configs = [
-    (50, 2000, "mapped"),
-    (50, 2000, "sinusodal")
+    (100, 4000, "mapped"),
+    (100, 4000, "sinusodal")
 ]
 
 forecaster_remote_config = (

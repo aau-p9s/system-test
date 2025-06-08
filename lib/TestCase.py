@@ -48,10 +48,9 @@ class TestCase(Generic[Unpack[T]]):
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, delay: int = 25, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int, str]] = [(50, 2000, "mapped")], forecaster_remote_config: tuple[str] | None = None, deployment_settings: dict[str, str] = {}):
+    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int, str]] = [(50, 2000, "mapped")], forecaster_remote_config: tuple[str] | None = None, deployment_settings: dict[str, str] = {}):
         self.size = size
         self.period = period
-        self.delay = delay
         self.scale_up = scale_up
         self.scale_down = scale_down
         self.min_replicas = min_replicas
