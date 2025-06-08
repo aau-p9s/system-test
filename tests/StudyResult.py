@@ -11,7 +11,7 @@ postgres_port = 5432
 autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
 
 
-class StudyResult(TestCase[float, str]):
+class StudyResult(TestCase[float|None, str|None]):
     def kubernetes_setup(self):
         super().kubernetes_setup()
         late_deployments = []
@@ -101,10 +101,14 @@ class StudyResult(TestCase[float, str]):
                 postgresql_execute(sql)
 
     def extra_metrics(self, deployment):
-        service_id = psql(f"SELECT id from services where name = '{deployment}-api'")[0][0]
-        error, model_id = psql(f"SELECT error, modelid FROM forecasts WHERE serviceid = '{service_id}'")[0]
-        model_name = psql(f"SELECT name from models where id = '{model_id}'")[0][0]
-        return float(error), model_name
+        service_id = postgresql_execute(f"SELECT id FROM services WHERE name = '{deployment}-api'")[0][0]
+        forecasts = postgresql_execute(f"SELECT modelid, forecast FROM forecasts WHERE serviceid = '{service_id}'")
+        if forecasts is None:
+            return None, None
+        model_id, forecast = forecasts[0]
+        error = forecast["rmse"] if "rmse" in forecast else None
+        model_name = postgresql_execute(f"SELECT name FROM models WHERE id = '{model_id}'")[0][0]
+        return error, model_name
 
     def column_names(self):
         return super().column_names() + ["error", "model"]
