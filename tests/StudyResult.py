@@ -1,7 +1,7 @@
 import os
 from lib.TestCase import TestCase
 from json import dumps
-from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, postgresql_execute, reinit
+from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, postgresql_execute, psql, reinit
 from lib.Arguments import reinit_db
 
 autoscaler_port = 8080
@@ -11,7 +11,7 @@ postgres_port = 5432
 autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
 
 
-class StudyResult(TestCase):
+class StudyResult(TestCase[float, str]):
     def kubernetes_setup(self):
         super().kubernetes_setup()
         late_deployments = []
@@ -99,3 +99,12 @@ class StudyResult(TestCase):
                 with open(f"/tmp/autoscaler/Autoscaler.DbUp/Scripts/{file_name}", "r") as file:
                     sql = file.read()
                 postgresql_execute(sql)
+
+    def extra_metrics(self, deployment):
+        service_id = psql(f"SELECT id from services where name = '{deployment}-api'")[0][0]
+        error, model_id = psql(f"SELECT error, modelid FROM forecasts WHERE serviceid = '{service_id}'")[0]
+        model_name = psql(f"SELECT name from models where id = '{model_id}'")[0][0]
+        return float(error), model_name
+
+    def column_names(self):
+        return super().column_names() + ["error", "model"]

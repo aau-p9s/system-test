@@ -5,7 +5,7 @@ import os
 import csv
 from json import dumps
 from datetime import datetime
-from typing import Any
+from typing import Any, Generic, Tuple, TypeVar, TypeVarTuple, Unpack
 from lib.Data import autoscaler_deployment, workload_deployment_configs
 from lib.Arguments import log_frequency
 from lib.Metrics import measure_power_usage
@@ -35,9 +35,11 @@ def make_log(start_time, end_time):
                     save_data["power"] = []
 
     return log_progress
+
+T = TypeVarTuple("T")
             
 
-class TestCase:
+class TestCase(Generic[Unpack[T]]):
     size:dict[str, int]
     period:int
     delay:int
@@ -102,14 +104,23 @@ class TestCase:
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
         power = measure_power_usage()[1]
         log(self.name, response_time, power, end_send)
+        extra_metrics = self.extra_metrics(name)
+        if extra_metrics is not None:
+            return [start_send, response_time, pod_count, power, request_count] + [m for m in extra_metrics]
         return [start_send, response_time, pod_count, power, request_count]
+
+    def extra_metrics(self, deployment: str) -> Tuple[Unpack[T]] | None:
+        return None
+
+    def column_names(self):
+        return ["timestamp", "response", "pods", "watt", "request_count"]
 
     def save(self, results:dict[str, list[list[Any]]]):
         os.system("mkdir -p results")
         for name, rows in results.items():
             with open(self.csv_name(name), "w") as file:
                 writer = csv.writer(file)
-                writer.writerow(["timestamp", "response", "pods", "watt", "request_count"])
+                writer.writerow(self.column_names())
                 writer.writerows(rows)
                 
     def kubernetes_setup(self):

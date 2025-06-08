@@ -1,3 +1,5 @@
+import csv
+import io
 from json import dumps, loads
 from os import chdir, getcwd, path, system
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
@@ -113,7 +115,7 @@ def nix(command, flake, working_directory=""):
     if working_directory:
         chdir(original_directory)
 
-def psql(sql: str, json = False):
+def psql(sql: str) -> list[list[str]]:
     try:
         result = check_output([
             "/usr/bin/psql",
@@ -121,10 +123,13 @@ def psql(sql: str, json = False):
             "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database,
-            "-c", sql
-        ], env={"PGPASSWORD": postgres_password}, stderr=output)
+            "-c", sql,
+            "-A", "-t", "--csv"
+        ], env={"PGPASSWORD": postgres_password}, stderr=output).decode()
 
-        return loads(result) if json else result
+        reader = csv.reader(result.split("\n"))
+        return [line for line in reader]
+
     except CalledProcessError as e:
         print(f"psql call failed {e.returncode}")
         exit(1)
