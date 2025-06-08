@@ -28,8 +28,9 @@ workload_configs = [
 tests = [
     # This first entry is for initialization
     #StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
+    StudyResult("study-v2-candidate-check", size=size, period=7200, workload_configs=workload_configs, forecaster_remote_config=("http://10.92.1.54",)),
     Baseline("baseline", size=size, workload_configs=workload_configs),
-    StudyResult("study-v2-candidate-10x10", size=size, workload_configs=workload_configs, forecaster_remote_config=("http://10.92.1.54",)),
+    StudyResult("study-v2-candidate", size=size, workload_configs=workload_configs, forecaster_remote_config=("http://10.92.1.54",)),
 ]
 
 for test in tests:
