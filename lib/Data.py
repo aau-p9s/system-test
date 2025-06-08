@@ -139,7 +139,7 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
         mem_req="1000Mi",
         mem_lim="2000Mi"
     )], service_account_name = "autoscaler"),
-    make_service("autoscaler", autoscaler_port)] + [#,
+    make_service("autoscaler", autoscaler_port)] + ([
     make_deployment("forecaster", [make_container(
         "forecaster",
         "ghcr.io/aau-p9s/forecaster:latest",
@@ -164,4 +164,4 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
         cpu_lim=None
     )]),
     make_service("forecaster", forecaster_port)
-] if remote_forecaster_config is None else []
+] if remote_forecaster_config is None else [])
