@@ -115,20 +115,16 @@ def nix(command, flake, working_directory=""):
     if working_directory:
         chdir(original_directory)
 
-def psql(sql: str) -> list[list[str]]:
+def psql(sql: str):
     try:
-        result = check_output([
+        check_output([
             "/usr/bin/psql",
             "-h", postgres_address,
             "-p", str(postgres_port),
             "-U", postgres_user,
             postgres_database,
-            "-c", sql,
-            "-A", "-t", "--csv"
+            "-c", sql
         ], env={"PGPASSWORD": postgres_password}, stderr=output).decode()
-
-        reader = csv.reader(result.split("\n"))
-        return [line for line in reader]
 
     except CalledProcessError as e:
         print(f"psql call failed {e.returncode}")
@@ -155,16 +151,14 @@ def reinit():
     # reinit connection
     connection = connect(host=postgres_address, port=postgres_port, user=postgres_user, password=postgres_password, database=postgres_database)
 
-def postgresql_execute(sql, params=[], returns=False):
+def postgresql_execute(sql, params=[]):
     cursor = connection.cursor()
     if params:
         cursor.execute(sql, params)
     else:
         cursor.execute(sql)
     connection.commit()
-    if returns:
-        return cursor.fetchall()
-    return []
+    return cursor.fetchall()
 
 
 def logged_delay(delay):
