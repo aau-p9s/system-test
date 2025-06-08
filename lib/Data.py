@@ -71,7 +71,7 @@ hpa_patch = lambda min, max, scale_down, scale_up: {
     },
 }
 
-autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscaler_port, forecaster_port: [
+autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscaler_port, forecaster_port, remote_forecaster_config: [
     {
         "apiVersion": "v1",
         "kind": "ServiceAccount",
@@ -116,20 +116,22 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
     make_deployment("autoscaler", [make_container(
         "autoscaler",
         "ghcr.io/aau-p9s/autoscaler:latest",
-        {                           
-            "AUTOSCALER__APIS__FORECASTER": f"http://forecaster:{forecaster_port}",
-            "AUTOSCALER__APIS__KUBERNETES": "https://kubernetes",
-            "AUTOSCALER__APIS__PROMETHEUS": "http://10.43.26.12:80",
-            "AUTOSCALER__DEVELOPMENTMODE": "false",
-            "AUTOSCALER__PGSQL__DATABASE": db_name,
-            "AUTOSCALER__PGSQL__USER": db_user,
-            "AUTOSCALER__PGSQL__PASSWORD": db_password,
-            "AUTOSCALER__PGSQL__ADDR": "postgres",
-            "AUTOSCALER__PGSQL__PORT": str(db_port),
-            "AUTOSCALER__ADDR": "0.0.0.0",
-            "AUTOSCALER__PORT": str(autoscaler_port),
-            "AUTOSCALER__STARTRUNNER": "false",
-            "Logging__LogLevel__Autoscaler": "Debug"
+        {
+            "Autoscaler__Apis__Forecaster__Url": "http://forecaster" if remote_forecaster_config is None else remote_forecaster_config[0],
+            "Autoscaler__Apis__Forecaster__Mock": "false",
+            "Autoscaler__Apis__Kubernetes__Url": "https://kubernetes",
+            "Autoscaler__Apis__Kubernetes__Mock": "false",
+            "Autoscaler__Apis__Prometheus__Url": "http://10.43.26.12:80",
+            "Autoscaler__Apis__Prometheus__Mock": "false",
+            "Autoscaler__Database__Database": db_name,
+            "Autoscaler__Database__User": db_user,
+            "Autoscaler__Database__Password": db_password,
+            "Autoscaler__Database__Hostname": "postgres",
+            "Autoscaler__Database__Port": str(db_port),
+            "Autoscaler__Addr": "0.0.0.0",
+            "Autoscaler__Port": str(autoscaler_port),
+            "Autoscaler__Runner__Start": "false",
+            "Logging__LogLevel__Autoscaler": "Information"
         },
         [{
             "containerPort": autoscaler_port
@@ -137,7 +139,7 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
         mem_req="1000Mi",
         mem_lim="2000Mi"
     )], service_account_name = "autoscaler"),
-    make_service("autoscaler", autoscaler_port),
+    make_service("autoscaler", autoscaler_port)] + [#,
     make_deployment("forecaster", [make_container(
         "forecaster",
         "ghcr.io/aau-p9s/forecaster:latest",
@@ -148,15 +150,18 @@ autoscaler_deployment = lambda db_name, db_user, db_password, db_port, autoscale
             "FORECASTER__PGSQL__ADDR": "postgres",
             "FORECASTER__PGSQL__PORT": str(db_port),
             "FORECASTER__ADDR": "0.0.0.0",
-            "FORECASTER__PORT": str(forecaster_port)
+            "FORECASTER__PORT": str(forecaster_port),
+            "FORECASTER__TRAIN__TIMEOUT":"300",
+            "FORECASTER__TEMPORARY__DIRECTORY":"/var/model_tmp",
+            "FORECASTER__ENABLE__GPU": "0"
         },
         [{
             "containerPort": forecaster_port
         }],
-        mem_req="1000Mi",
-        mem_lim="2000Mi",
+        mem_req="10000Mi",
+        mem_lim="10000Mi",
         cpu_req=None,
         cpu_lim=None
     )]),
-    make_service("forecaster", forecaster_port),
-]
+    make_service("forecaster", forecaster_port)
+] if remote_forecaster_config is None else []

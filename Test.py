@@ -28,8 +28,8 @@ workload_configs = [
 tests = [
     # This first entry is for initialization
     #StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
-    StudyResult("study-new-10x10", size=size, workload_configs=workload_configs),
-    GroundTruth("GT-new-10x10", workload_configs=workload_configs, size=size)
+    Baseline("baseline", size=size, workload_configs=workload_configs),
+    StudyResult("study-v2-candidate-10x10", size=size, workload_configs=workload_configs, forecaster_remote_config=("http://10.92.1.54",)),
 ]
 
 for test in tests:

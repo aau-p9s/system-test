@@ -47,10 +47,11 @@ class StudyResult(TestCase):
             "--for=condition=Available",
             "deployments/autoscaler"
         ])
-        kubectl("wait", [
-            "--for=condition=Available",
-            "deployments/forecaster"
-        ])
+        if self.forecaster_remote_config is None:
+            kubectl("wait", [
+                "--for=condition=Available",
+                "deployments/forecaster"
+            ])
         # a little extra just to be sure
         logged_delay(20)
 

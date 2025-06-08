@@ -46,7 +46,7 @@ class TestCase:
     min_replicas:int
     max_replicas:int
 
-    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, delay: int = 25, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int, str]] = [(50, 2000, "mapped")]):
+    def __init__(self, name, size: dict[str, int] = {"x":2000, "y":2000}, period: int = 86400, delay: int = 25, scale_up: float = .5, scale_down: float = .2, min_replicas: int = 1, max_replicas: int = 10, workload_configs: list[tuple[int, int, str]] = [(50, 2000, "mapped")], forecaster_remote_config: tuple[str] | None = None):
         self.size = size
         self.period = period
         self.delay = delay
@@ -55,7 +55,8 @@ class TestCase:
         self.min_replicas = min_replicas
         self.max_replicas = max_replicas
         self.name = name
-        self.kubeconfigs = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081)
+        self.forecaster_remote_config = forecaster_remote_config
+        self.kubeconfigs = autoscaler_deployment("autoscaler", "root", "password", 5432, 8080, 8081, forecaster_remote_config)
         
         self.workload_kubeconfigs = {
             f"workload-{i}": workload_deployment_configs(f"workload-{i}", 8090 + (i*2), size, config[0], config[1], config[2]) 
