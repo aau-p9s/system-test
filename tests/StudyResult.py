@@ -37,6 +37,8 @@ class StudyResult(TestCase):
             postgresql_execute("delete from historicdata")
             postgresql_execute("delete from forecasts")
             postgresql_execute("update services set autoscalingEnabled = false")
+            for name, value in self.deployment_settings.items():
+                postgresql_execute(f"update settings set {name} = {value}")
 
         print("Applying late kubeconfigs")
         # Do the late deployments
