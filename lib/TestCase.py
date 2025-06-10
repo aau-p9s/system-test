@@ -1,15 +1,14 @@
 from subprocess import CalledProcessError
-import sys
 import time
 import os
 import csv
 from json import dumps
-from datetime import datetime
-from typing import Any, Generic, Tuple, TypeVar, TypeVarTuple, Unpack
+from typing import Any, Generic, Tuple, TypeVarTuple, Unpack
 from lib.Data import autoscaler_deployment, workload_deployment_configs
-from lib.Arguments import log_frequency
+from lib.Arguments import log_frequency, deployment
 from lib.Metrics import measure_power_usage
-from lib.Utils import curl, kubectl, kubectl_apply, logged_delay
+from lib.Plot import plot_from_data
+from lib.Utils import curl, kubectl_apply, kubectl, logged_delay, docker_compose_down
 
 def make_log(start_time, end_time):
     duration = end_time - start_time
@@ -70,7 +69,7 @@ class TestCase(Generic[Unpack[T]]):
         print(f"Initialized {self}")
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.delay=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
+        return f"{type(self).__name__}{{{self.size=}, {self.period=}, {self.scale_up=}, {self.scale_down=}, {self.min_replicas=}, {self.max_replicas=}}}".replace("self.", "")
 
     def run(self):
 
@@ -87,8 +86,19 @@ class TestCase(Generic[Unpack[T]]):
         self.save(results)
 
     def measure(self, name:str, log):
-        api_port = self.workload_kubeconfigs[name]["api-service"]["spec"]["ports"][0]["nodePort"]
-        generator_port = self.workload_kubeconfigs[name]["generator-service"]["spec"]["ports"][0]["nodePort"]
+        extra_metrics = self.extra_metrics(name)
+        if deployment == "docker":
+            log(self.name, time.time(), 0, time.time())
+            if extra_metrics is not None:
+                return [time.time(), 0.0, 1, 0, 1] + [m for m in extra_metrics]
+            return [time.time(), 0.0, 1, 0, 1]
+        kubeconfig = self.workload_kubeconfigs[name]
+        if kubeconfig["api-service"] is None:
+            raise ValueError("WTF")
+        api_port = kubeconfig["api-service"]["spec"]["ports"][0]["nodePort"]
+        if kubeconfig["generator-service"] is None:
+            raise ValueError("WTF2")
+        generator_port = kubeconfig["generator-service"]["spec"]["ports"][0]["nodePort"]
         start_send = time.time()
         try:
             curl(f"localhost:{api_port}/mm", [
@@ -103,7 +113,6 @@ class TestCase(Generic[Unpack[T]]):
         pod_count = kubectl("get", ["deploy", f"{name}-api"], json=True)["spec"]["replicas"]
         power = measure_power_usage()[1]
         log(self.name, response_time, power, end_send)
-        extra_metrics = self.extra_metrics(name)
         if extra_metrics is not None:
             return [start_send, response_time, pod_count, power, request_count] + [m for m in extra_metrics]
         return [start_send, response_time, pod_count, power, request_count]
@@ -121,6 +130,7 @@ class TestCase(Generic[Unpack[T]]):
                 writer = csv.writer(file)
                 writer.writerow(self.column_names())
                 writer.writerows(rows)
+            plot_from_data(rows, label=name)
                 
     def kubernetes_setup(self):
         kubectl("create", [
@@ -129,8 +139,10 @@ class TestCase(Generic[Unpack[T]]):
             "--from-file=/var/agg_minute.csv"
         ])
         for name, kubeconfigs in self.workload_kubeconfigs.items():
+            if deployment == "docker":
+                break
             for key, kubeconfig in kubeconfigs.items():
-                print(f"Applying workload: {name} - {key}")
+                print(f"Applying workloads: {name} - {key}")
                 kubectl_apply(kubeconfig)
 
             print(f"Waiting for workload deployment: {name}")
@@ -145,33 +157,39 @@ class TestCase(Generic[Unpack[T]]):
             
 
     def cleanup(self):
-        print("Cleaning up kubernetes environment...")
-        for kubeconfig in self.kubeconfigs:
-            name = kubeconfig["metadata"]["name"]
-            kind = kubeconfig["kind"]
-            kubectl("delete", [
-                kind,
-                name
-            ], failable=True)
+        match deployment:
+            case "docker":
+                docker_compose_down(self.kubeconfigs[0])
+            case "kubernetes":
+                print("Cleaning up kubernetes environment...")
+                for kubeconfig in self.kubeconfigs:
+                    name = kubeconfig["metadata"]["name"]
+                    kind = kubeconfig["kind"]
+                    kubectl("delete", [
+                        kind,
+                        name
+                    ], failable=True)
 
-        # Workload Deployments
-        for workload_name, kubeconfigs in self.workload_kubeconfigs.items():
-            for key, kubeconfig in kubeconfigs.items():
-                print(f"Cleaning {workload_name} - {key}")
-                name = kubeconfig["metadata"]["name"]
-                kind = kubeconfig["kind"]
+                # Workload Deployments
+                for workload_name, kubeconfigs in self.workload_kubeconfigs.items():
+                    for key, kubeconfig in kubeconfigs.items():
+                        print(f"Cleaning {workload_name} - {key}")
+                        if kubeconfig is None:
+                            raise ValueError("WTF3")
+                        name = kubeconfig["metadata"]["name"]
+                        kind = kubeconfig["kind"]
+                        kubectl("delete", [
+                            kind,
+                            name
+                        ], failable=True)
+                        kubectl("delete", [
+                            "hpa",
+                            name
+                        ], failable=True)
                 kubectl("delete", [
-                    kind,
-                    name
+                    "configmap",
+                    "data-config"
                 ], failable=True)
-                kubectl("delete", [
-                    "hpa",
-                    name
-                ], failable=True)
-        kubectl("delete", [
-            "configmap",
-            "data-config"
-        ], failable=True)
     
     def has_run(self) -> bool:
         return max(os.path.exists(self.csv_name(name)) for name in self.workload_kubeconfigs)

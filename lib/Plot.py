@@ -1,9 +1,7 @@
-# DISCLAIMER: matplotlib is very easy to put into words and the files have a lot of inconsistencies.
-# This is very easy to feed to AI so this file is AI generated
+# plot_module.py
 
 import csv
 import os
-import sys
 import matplotlib.pyplot as plt
 from statistics import quantiles
 from datetime import datetime
@@ -51,7 +49,7 @@ def read_csv(file_path):
     return None
 
 def plot_all_subplots(data):
-    label = data['label']
+    label = data.get('label', 'output')
     plots_to_draw = []
 
     if data['type'] == 'watt_only':
@@ -66,10 +64,9 @@ def plot_all_subplots(data):
 
     fig, axs = plt.subplots(num_plots, 1, figsize=(10, 4 * num_plots), constrained_layout=True)
     if num_plots == 1:
-        axs = [axs]  # make iterable
+        axs = [axs]
 
     i = 0
-
     if 'watt' in plots_to_draw:
         ax = axs[i]
         if data['type'] == 'full':
@@ -127,30 +124,21 @@ def plot_all_subplots(data):
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
             ax.grid(True)
             i += 1
-        else:
-            print(f"No valid request count data in {label}")
 
     fig.suptitle(f'Plots for {label}', fontsize=14)
-    plt.show()
+    os.makedirs("results", exist_ok=True)
+    plt.savefig(f"results/{label.replace('.csv', '.png')}")
+    plt.close(fig)
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python plot_k8s.py <directory_path>")
-        return
+def plot_from_file(path: str):
+    data = read_csv(path)
+    if data:
+        plot_all_subplots(data)
 
-    directory = sys.argv[-1]
-    if not os.path.isdir(directory):
-        print(f"Directory not found: {directory}")
-        return
-
-    for filename in sorted(os.listdir(directory)):
-        if filename.endswith('.csv'):
-            path = os.path.join(directory, filename)
-            data = read_csv(path)
-            if data:
-                print(f"Plotting for {data['label']}")
-                plot_all_subplots(data)
-
-if __name__ == "__main__":
-    main()
+def plot_from_data(data_list, data_type='full', label='from_data'):
+    if data_type == 'watt_only':
+        data = {'type': 'watt_only', 'data': data_list, 'label': label}
+        plot_all_subplots(data)
+    else:
+        raise ValueError("Only 'watt_only' type is supported for list input.")
 

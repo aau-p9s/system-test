@@ -2,9 +2,12 @@ from json import dumps
 from lib.TestCase import TestCase
 from lib.Data import hpa_patch
 from lib.Utils import kubectl, logged_delay
+from lib.Arguments import deployment
 
 class GroundTruth(TestCase):
     def kubernetes_setup(self):
+        if deployment == "docker":
+            raise RuntimeError("Error, unsupported deployment type")
         super().kubernetes_setup()
         for name in self.workload_kubeconfigs:
             kubectl("autoscale", [

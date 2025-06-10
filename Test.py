@@ -1,9 +1,6 @@
 from os import get_terminal_size
-from lib.TestCase import TestCase
 from tests.Baseline import Baseline
-from tests.GroundTruth import GroundTruth
 from tests.StudyResult import StudyResult
-from tests.Utils import make_test_triple
 import lib.Arguments as args # force entire module to load
 
 def headline(title: str) -> str:
