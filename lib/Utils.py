@@ -93,7 +93,7 @@ def kubectl_apply(data:Any):
     except CalledProcessError:
         raise RuntimeError(f"Failed to apply: {dumps(data, indent=4)}")
 
-def docker_compose(data:dict[str, Any]):
+def docker_compose_up(data:dict[str, Any], targets:list[str] = []):
     print("Building dockerfiles")
     try:
         data_pipe = Popen([
@@ -104,7 +104,7 @@ def docker_compose(data:dict[str, Any]):
             "docker",
             "compose",
             "-f", "-",
-            "up", "-d",
+            "up"] + targets + ["-d",
             "--build"
         ], stderr=output, stdout=output, stdin=data_pipe.stdout)
     except CalledProcessError:
@@ -128,12 +128,13 @@ def docker_compose_down(data:dict[str, Any]):
 def deploy(data:list[dict], exclusions: list[str] = []):
     match deployment:
         case "docker":
-            filtered_data = {
-                name: service
-                for name, service in data[0].items()
+            filtered_keys = [
+                name
+                for name in data[0]['services']
                 if not name in exclusions
-            }
-            docker_compose(filtered_data)
+            ]
+            print(filtered_keys)
+            docker_compose_up(data[0], filtered_keys)
         case "kubernetes":
             for kubeconfig in data:
                 if not kubeconfig["metadata"]["name"] in exclusions:

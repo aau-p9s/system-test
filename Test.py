@@ -35,11 +35,7 @@ forecaster_remote_config = (
 tests = [
     # This first entry is for initialization
     #StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
-    StudyResult("study-v2-candidate-check", size=size, period=7200, workload_configs=workload_configs, forecaster_remote_config=forecaster_remote_config, deployment_settings={
-        "scaleperiod":"600000"
-    }),
-    Baseline("baseline", size=size, workload_configs=workload_configs),
-    StudyResult("study-v2-candidate", size=size, workload_configs=workload_configs, forecaster_remote_config=forecaster_remote_config),
+    StudyResult("study-v2.1-candidate", size=size, workload_configs=workload_configs, forecaster_remote_config=forecaster_remote_config)
 ]
 
 for test in tests:

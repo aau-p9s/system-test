@@ -90,7 +90,8 @@ def autoscaler_deployment(db_name, db_user, db_password, db_port, autoscaler_por
                             "FORECASTER__PGSQL__PASSWORD": db_password,
                             "FORECASTER__PGSQL__ADDR": "postgres",
                             "FORECASTER__PGSQL__PORT": 5432,
-                            "FORECASTER__PORT": forecaster_port
+                            "FORECASTER__PORT": forecaster_port,
+                            "FORECASTER__ENABLE__GPU": "0"
                         },
                         "ports": [
                             f"{30000 + (forecaster_port % 1000)}:{forecaster_port}"
