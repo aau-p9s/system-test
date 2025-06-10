@@ -7,6 +7,12 @@
         system = "x86_64-linux";
         pkgs = import nixpkgs { inherit system; };
     in {
+        devShells.${system}.default = pkgs.mkShellNoCC {
+            packages = with pkgs; [
+                feh
+                forecaster.packages.${system}.env
+            ];
+        };
         packages.${system}.test = pkgs.writeScriptBin "test" ''
             #!${pkgs.bash}/bin/bash
             ${forecaster.packages.${system}.env.interpreter} Test.py $@

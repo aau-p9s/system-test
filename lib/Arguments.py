@@ -11,6 +11,7 @@ parser.add_argument("--postgres_database", type=str, default="autoscaler")
 parser.add_argument("--postgres_user", type=str, default="root")
 parser.add_argument("--postgres_password", type=str, default="password")
 parser.add_argument("--deployment", "-d", type=str, default="kubernetes")
+parser.add_argument("--plot", "-p", type=str, default=None)
 
 args = vars(parser.parse_args())
 verbose = args["verbose"]
@@ -22,3 +23,4 @@ postgres_database = args["postgres_database"]
 postgres_user = args["postgres_user"]
 postgres_password = args["postgres_password"]
 deployment = args["deployment"]
+plot = args["plot"]

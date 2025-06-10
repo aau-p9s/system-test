@@ -2,6 +2,12 @@ from os import get_terminal_size
 from tests.Baseline import Baseline
 from tests.StudyResult import StudyResult
 import lib.Arguments as args # force entire module to load
+from lib.Plot import plot_from_file
+
+if args.plot is not None:
+    plot_from_file(args.plot)
+    exit(0)
+
 
 def headline(title: str) -> str:
     total = get_terminal_size()[0]
