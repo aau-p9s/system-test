@@ -65,6 +65,7 @@ class TestCase(Generic[Unpack[T]]):
         }
         
         self.csv_name = lambda test_name: f"results/{name}-{test_name}.csv"
+        self.intermediate_csv_name = lambda test_name: f"results/intermediate-{name}-{test_name}.csv"
 
         print(f"Initialized {self}")
 
@@ -80,9 +81,14 @@ class TestCase(Generic[Unpack[T]]):
         end_time = start_time + self.period
         log = make_log(start_time, end_time)
 
+        for key in self.workload_kubeconfigs:
+            self.save_intermediate(key, self.column_names())
+
         while time.time() < end_time:
             for key in self.workload_kubeconfigs:
+                result = self.measure(key, log)
                 results[key].append(self.measure(key, log))
+                self.save_intermediate(key, result)
         self.save(results)
 
     def measure(self, name:str, log):
@@ -131,6 +137,12 @@ class TestCase(Generic[Unpack[T]]):
                 writer.writerow(self.column_names())
                 writer.writerows(rows)
             plot_from_data(rows, label=name)
+
+    def save_intermediate(self, name: str, row:list[Any]):
+        with open(self.intermediate_csv_name(name), "a") as file:
+            writer = csv.writer(file)
+            writer.writerow(row)
+
                 
     def kubernetes_setup(self):
         kubectl("create", [
