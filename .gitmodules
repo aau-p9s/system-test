@@ -1,0 +1,8 @@
+[submodule "modules/Autoscaler"]
+	path = modules/Autoscaler
+	url = git@github.com:aau-p9s/Autoscaler
+	branch = system-test-v2-candidate-promql
+[submodule "modules/Forecaster"]
+	path = modules/Forecaster
+	url = git@github.com:aau-p9s/Forecaster
+	branch = store_rmse

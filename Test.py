@@ -1,10 +1,13 @@
 from os import get_terminal_size
-from lib.TestCase import TestCase
 from tests.Baseline import Baseline
-from tests.GroundTruth import GroundTruth
 from tests.StudyResult import StudyResult
-from tests.Utils import make_test_triple
 import lib.Arguments as args # force entire module to load
+from lib.Plot import plot_from_file
+
+if args.plot is not None:
+    plot_from_file(args.plot)
+    exit(0)
+
 
 def headline(title: str) -> str:
     total = get_terminal_size()[0]
@@ -21,15 +24,18 @@ size = {
 }
 
 workload_configs = [
-    (50, 2000, "mapped"),
-    (50, 2000, "sinusodal")
+    (100, 4000, "mapped"),
+    (100, 4000, "sinusodal")
 ]
+
+forecaster_remote_config = (
+    "http://10.92.1.54:8085",
+)
 
 tests = [
     # This first entry is for initialization
     #StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
-    StudyResult("study-new-10x10", size=size, workload_configs=workload_configs),
-    GroundTruth("GT-new-10x10", workload_configs=workload_configs, size=size)
+    StudyResult("study-v2.1-candidate", size=size, workload_configs=workload_configs, forecaster_remote_config=forecaster_remote_config)
 ]
 
 for test in tests:

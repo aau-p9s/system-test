@@ -1,11 +1,8 @@
 import os
 from lib.TestCase import TestCase
 from json import dumps
-from uuid import uuid4
-import cloudpickle
-from datetime import datetime
-from lib.Utils import curl, kubectl, kubectl_apply, logged_delay, clone_repository, nix, postgresql_execute, reinit
-from lib.Arguments import reinit_db
+from lib.Utils import curl, deploy, kubectl, logged_delay, clone_repository, postgresql_execute, postgresql_execute_get, reinit
+from lib.Arguments import reinit_db, deployment
 
 autoscaler_port = 8080
 forecaster_port = 8081
@@ -14,16 +11,11 @@ postgres_port = 5432
 autoscaler_exposed_port = 30000 + (autoscaler_port % 1000)
 
 
-class StudyResult(TestCase):
+class StudyResult(TestCase[float|None, str|None]):
     def kubernetes_setup(self):
         super().kubernetes_setup()
-        late_deployments = []
-        print("Applying initial kubeconfigs")
-        for kubeconfig in self.kubeconfigs:
-            if kubeconfig["metadata"]["name"] in ["autoscaler", "forecaster"] and kubeconfig["kind"] == "Deployment":
-                late_deployments.append(kubeconfig)
-            else:
-                kubectl_apply(kubeconfig)
+        print("Applying kubeconfigs")
+        deploy(self.kubeconfigs, ["autoscaler", "forecaster"])
 
         # wait for db to be ready
         kubectl("wait", [
@@ -40,31 +32,46 @@ class StudyResult(TestCase):
             postgresql_execute("delete from historicdata")
             postgresql_execute("delete from forecasts")
             postgresql_execute("update services set autoscalingEnabled = false")
+            for name, value in self.deployment_settings.items():
+                postgresql_execute(f"update settings set {name} = {value}")
 
         print("Applying late kubeconfigs")
-        # Do the late deployments
-        for kubeconfig in late_deployments:
-            kubectl_apply(kubeconfig)
+        deploy(self.kubeconfigs)
         # Wait for deployments to be ready
         kubectl("wait", [
             "--for=condition=Available",
             "deployments/autoscaler"
         ])
-        kubectl("wait", [
-            "--for=condition=Available",
-            "deployments/forecaster"
-        ])
+        if self.forecaster_remote_config is None:
+            kubectl("wait", [
+                "--for=condition=Available",
+                "deployments/forecaster"
+            ])
         # a little extra just to be sure
         logged_delay(20)
 
         print("Discovering services")
-        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
-        # let shit run
-        logged_delay(5)
+        self.discover()
 
-        services = curl(f"localhost:{autoscaler_exposed_port}/services")
-        for name in self.workload_kubeconfigs:
-            service = [service for service in services if service["name"] == f"{name}-api"][0]
+
+    def discover(self):
+        curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
+        match deployment:
+            case "docker":
+                logged_delay(20)
+                services = curl(f"localhost:{autoscaler_exposed_port}/services")
+                print(services)
+            case "kubernetes":
+                # let shit run
+                logged_delay(120 if reinit_db else 5)
+        
+                raw_services = curl(f"localhost:{autoscaler_exposed_port}/services")
+                services = [service for service in raw_services if service["name"] == [f"{name}-api" for name in self.workload_kubeconfigs]]
+
+            case _:
+                raise ValueError(f"invalid deployment type {deployment}")
+
+        for service in services:
             service_id = service["id"]
             service["autoscalingEnabled"] = True
 
@@ -78,18 +85,12 @@ class StudyResult(TestCase):
                 "--json",
                 dumps(service)
             ], json=False) == "true":
-                print(f"Failed to set service data: {dumps(service)}")
-                exit(1)
+                raise RuntimeError(f"Failed to set service data: {dumps(service)}")
             if not curl(f"localhost:{autoscaler_exposed_port}/services/{service_id}/settings", [
                 "--json",
                 dumps(settings)
             ], json=False) == "true":
-                print(f"Failed to set settings data: {dumps(settings)}")
-                exit(1)
-
-        if reinit_db:
-            print("Inserting models")
-            self.insert_models()
+                raise RuntimeError(f"Failed to set settings data: {dumps(settings)}")
 
         print("Rediscovering services/starting autoscaling")
         curl(f"localhost:{autoscaler_exposed_port}/services/start", json=False)
@@ -104,16 +105,15 @@ class StudyResult(TestCase):
                     sql = file.read()
                 postgresql_execute(sql)
 
-    def insert_models(self):
-        for model_name in os.listdir("./models"):
-            with open(f"./models/{model_name}/{model_name}.pth", "rb") as file:
-                try:
-                    model = cloudpickle.load(file)
-                    print(f"Loaded {model_name}")
-                except Exception:
-                    print(f"Failed to load {model_name}")
-                    continue
-                binary = cloudpickle.dumps(model)
-                postgresql_execute("insert into models (id, name, bin, trainedat, serviceid) select gen_random_uuid(), %s, %s, %s, id from services", [
-                    model_name, binary, datetime.now()
-                ])
+    def extra_metrics(self, deployment):
+        service_id = postgresql_execute_get(f"SELECT id FROM services WHERE name = '{deployment}-api'")[0][0]
+        forecasts = postgresql_execute_get(f"SELECT modelid, forecast FROM forecasts WHERE serviceid = '{service_id}'")
+        if len(forecasts) == 0:
+            return (0, "")
+        model_id, forecast = forecasts[0]
+        error = forecast["rmse"] if "rmse" in forecast else None
+        model_name = postgresql_execute_get(f"SELECT name FROM models WHERE id = '{model_id}'")[0][0]
+        return error, model_name
+
+    def column_names(self):
+        return super().column_names() + ["error", "model"]

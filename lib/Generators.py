@@ -28,7 +28,7 @@ def make_deployment(name: str, containers: list[dict[str, Any]], service_account
         }
     }
 
-def make_container(name: str, image: str, env: dict[str, str] = {}, ports: list[dict[str, int]] = [], volumeMounts: list[Any] = [], mem_req: str = "100Mi", mem_lim: str = "200Mi", cpu_req: str = "500m", cpu_lim: str = "1000m") -> dict[str, Any]:
+def make_container(name: str, image: str, env: dict[str, str] = {}, ports: list[dict[str, int]] = [], volumeMounts: list[Any] = [], mem_req: str = "100Mi", mem_lim: str = "200Mi", cpu_req: str|None = "500m", cpu_lim: str|None = "1000m") -> dict[str, Any]:
     return {
         "name": name,
         "image": image,
@@ -42,10 +42,14 @@ def make_container(name: str, image: str, env: dict[str, str] = {}, ports: list[
             "requests": {
                 "memory": mem_req,
                 "cpu": cpu_req
+            } if cpu_req is not None else {
+                "memory": mem_req
             },
             "limits": {
                 "memory": mem_lim,
                 "cpu": cpu_lim
+            } if cpu_lim is not None else {
+                "memory": mem_lim
             }
         }
     }
