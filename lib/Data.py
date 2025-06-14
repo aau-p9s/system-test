@@ -1,7 +1,7 @@
 from lib.Generators import make_container, make_deployment, make_service
 from lib.Arguments import deployment
 
-def workload_deployment_configs(name, port, size, min_requests, max_requests, workload_type):
+def workload_deployment_configs(name, port, size, min_requests, max_requests, workload_type, startup_delay):
     if deployment == "docker":
         return {"api":None, "generator":None}
     return {
@@ -9,7 +9,8 @@ def workload_deployment_configs(name, port, size, min_requests, max_requests, wo
             f"{name}-api",
             "ghcr.io/aau-p9s/workload-api:latest",
             {
-                "WORKLOAD_PORT": port
+                "WORKLOAD_PORT": port,
+                "WORKLOAD_STARTUP_DELAY": startup_delay
             },
             [{
                 "containerPort": port
