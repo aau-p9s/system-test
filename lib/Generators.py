@@ -8,8 +8,8 @@ def make_path(path: str, value: Any) -> dict[str, Any]:
         return { levels[0]: make_path(path[len(levels[0])+1:], value) }
 
 
-def make_deployment(name: str, containers: list[dict[str, Any]], service_account_name = None, volumes: list[Any] = []) -> dict[str, Any]:
-    return {
+def make_deployment(name: str, containers: list[dict[str, Any]], service_account_name = None, volumes: list[Any] = [], probe=False) -> dict[str, Any]:
+    deployment = {
         "apiVersion": "apps/v1",
         "kind": "Deployment",
         "metadata": {
@@ -27,6 +27,20 @@ def make_deployment(name: str, containers: list[dict[str, Any]], service_account
             }
         }
     }
+    if probe:
+        deployment.update({
+            "startupProbe": {
+                "exec": {
+                    "command": [
+                        "cat",
+                        "/var/ready"
+                    ]
+                },
+                "failureThreshold": 30,
+                "periodSeconds": 1
+            }
+        })
+    return deployment
 
 def make_container(name: str, image: str, env: dict[str, str] = {}, ports: list[dict[str, int]] = [], volumeMounts: list[Any] = [], mem_req: str = "100Mi", mem_lim: str = "200Mi", cpu_req: str|None = "500m", cpu_lim: str|None = "1000m") -> dict[str, Any]:
     return {
