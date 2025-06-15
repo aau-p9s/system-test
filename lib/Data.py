@@ -15,7 +15,7 @@ def workload_deployment_configs(name, port, size, min_requests, max_requests, wo
             [{
                 "containerPort": port
             }]
-        )]),
+        )], probe=True),
         "generator": make_deployment(f"{name}-generator", [make_container(
             f"{name}-generator",
             "ghcr.io/aau-p9s/workload-generator:latest",
