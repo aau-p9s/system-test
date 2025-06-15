@@ -24,9 +24,9 @@ size = {
 }
 
 workload_configs = [
-    (50, 2000, "mapped", 0),
-    (50, 2000, "sinusodal", 10)
-, 10]
+    (50, 2000, "mapped", 10),
+    (50, 2000, "mapped", 0)
+]
 
 forecaster_remote_config = (
     "http://10.92.1.54:8085",
@@ -35,7 +35,7 @@ forecaster_remote_config = (
 tests = [
     # This first entry is for initialization
     #StudyResult("study-short-10x10", size=size, workload_configs=workload_configs, period=60)
-    StudyResult("study-v2.1-candidate", size=size, workload_configs=workload_configs, forecaster_remote_config=forecaster_remote_config)
+    StudyResult("study-v2.2-startup-time", size=size, workload_configs=workload_configs, forecaster_remote_config=forecaster_remote_config)
 ]
 
 for test in tests:

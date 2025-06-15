@@ -14,8 +14,8 @@ def workload_deployment_configs(name, port, size, min_requests, max_requests, wo
             },
             [{
                 "containerPort": port
-            }]
-        )], probe=True),
+            }], probe=True
+        )]),
         "generator": make_deployment(f"{name}-generator", [make_container(
             f"{name}-generator",
             "ghcr.io/aau-p9s/workload-generator:latest",
@@ -115,7 +115,7 @@ def autoscaler_deployment(db_name, db_user, db_password, db_port, autoscaler_por
                             "Autoscaler__Addr": "0.0.0.0",
                             "Autoscaler__Port": autoscaler_port,
                             "Autoscaler__Runner__Start": False,
-                            "Logging__LogLevel__Autoscaler": "Information"
+                            "Logging__LogLevel__Autoscaler": "Debug"
                         },
                         "ports": [
                             f"{30000 + (autoscaler_port % 1000)}:{autoscaler_port}"
@@ -200,7 +200,7 @@ def autoscaler_deployment(db_name, db_user, db_password, db_port, autoscaler_por
                         "Autoscaler__Addr": "0.0.0.0",
                         "Autoscaler__Port": str(autoscaler_port),
                         "Autoscaler__Runner__Start": "false",
-                        "Logging__LogLevel__Autoscaler": "Information"
+                        "Logging__LogLevel__Autoscaler": "Debug"
                     },
                     [{
                         "containerPort": autoscaler_port
