@@ -3,7 +3,7 @@ from os import chdir, getcwd, path, system
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, check_call, check_output
 from time import sleep
 from typing import Any
-from psycopg2 import connect
+from psycopg2 import OperationalError, connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from lib.Arguments import verbose, postgres_address, postgres_port, postgres_database, postgres_user, postgres_password, deployment
 
@@ -176,25 +176,31 @@ def reinit():
     conn.close()
 
 def postgresql_execute(sql, params=[]):
-
-    connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
-    cursor = connection.cursor()
-    if params:
-        cursor.execute(sql, params)
-    else:
-        cursor.execute(sql)
-    connection.commit()
+    try:
+        connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
+        cursor = connection.cursor()
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+        connection.commit()
+    except OperationalError as e:
+        print(f"Got error: {e=}")
+        postgresql_execute(sql, params)
 
 def postgresql_execute_get(sql, params=[]):
-
-    connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
-    cursor = connection.cursor()
-    if params:
-        cursor.execute(sql, params)
-    else:
-        cursor.execute(sql)
-    connection.commit()
-    return cursor.fetchall()
+    try:
+        connection = connect(database=postgres_database, user=postgres_user, password=postgres_password, host=postgres_address, port=postgres_port)
+        cursor = connection.cursor()
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+        connection.commit()
+        return cursor.fetchall()
+    except OperationalError as e:
+        print(f"Got error: {e=}")
+        postgresql_execute_get(sql, params)
 
 
 def logged_delay(delay):
