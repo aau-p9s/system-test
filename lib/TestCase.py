@@ -66,6 +66,9 @@ class TestCase(Generic[Unpack[T]]):
         
         self.csv_name = lambda test_name: f"results/{name}-{test_name}.csv"
         self.intermediate_csv_name = lambda test_name: f"results/intermediate-{name}-{test_name}.csv"
+        for key in self.workload_kubeconfigs:
+            if os.path.exists(self.intermediate_csv_name(key)):
+                raise OSError(f"Path already exists... {self.intermediate_csv_name(key)}")
 
         print(f"Initialized {self}")
 
